@@ -19,4 +19,9 @@
 #include "lolevel.h"
 #include     "int.h"
 
+// Include timer, GIC (general input controller) and uart, (universal asyncrynous transmit recieve)
+#include   "GIC.h"
+#include "PL011.h"
+#include "SP804.h"
+
 #endif
