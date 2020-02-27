@@ -7,6 +7,48 @@
 
 #include "hilevel.h"
 
+
+void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
+  char prev_pid = '?', next_pid = '?';
+
+  if( NULL != prev ) {
+    memcpy( &prev->ctx, ctx, sizeof( ctx_t ) ); // preserve execution context of P_{prev}
+    prev_pid = '0' + prev->pid;
+  }
+  if( NULL != next ) {
+    memcpy( ctx, &next->ctx, sizeof( ctx_t ) ); // restore  execution context of P_{next}
+    next_pid = '0' + next->pid;
+  }
+
+    PL011_putc( UART0, '[',      true );
+    PL011_putc( UART0, prev_pid, true );
+    PL011_putc( UART0, '-',      true );
+    PL011_putc( UART0, '>',      true );
+    PL011_putc( UART0, next_pid, true );
+    PL011_putc( UART0, ']',      true );
+
+    executing = next;                           // update   executing process to P_{next}
+
+  return;
+}
+
+void schedule( ctx_t* ctx ) {
+  if     ( executing->pid == procTab[ 0 ].pid ) {
+    dispatch( ctx, &procTab[ 0 ], &procTab[ 1 ] );  // context switch P_1 -> P_2
+
+    procTab[ 0 ].status = STATUS_READY;             // update   execution status  of P_1 
+    procTab[ 1 ].status = STATUS_EXECUTING;         // update   execution status  of P_2
+  }
+  else if( executing->pid == procTab[ 1 ].pid ) {
+    dispatch( ctx, &procTab[ 1 ], &procTab[ 0 ] );  // context switch P_2 -> P_1
+
+    procTab[ 1 ].status = STATUS_READY;             // update   execution status  of P_2
+    procTab[ 0 ].status = STATUS_EXECUTING;         // update   execution status  of P_1
+  }
+
+  return;
+}
+
 void hilevel_handler_rst() {
  
   /* Set up timer */
@@ -22,6 +64,30 @@ void hilevel_handler_rst() {
   GICD0->CTLR         = 0x00000001; // enable GIC distributor
 
   int_enable_irq();
+  
+  memset( &procTab[ 0 ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
+  procTab[ 0 ].pid      = 1;
+  procTab[ 0 ].status   = STATUS_READY;
+  procTab[ 0 ].tos      = ( uint32_t )( &tos_P1  );
+  procTab[ 0 ].ctx.cpsr = 0x50;
+  procTab[ 0 ].ctx.pc   = ( uint32_t )( &main_P1 );
+  procTab[ 0 ].ctx.sp   = procTab[ 0 ].tos;
+
+  memset( &procTab[ 1 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
+  procTab[ 1 ].pid      = 2;
+  procTab[ 1 ].status   = STATUS_READY;
+  procTab[ 1 ].tos      = ( uint32_t )( &tos_P2  );
+  procTab[ 1 ].ctx.cpsr = 0x50;
+  procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P2 );
+  procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
+
+  /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
+   * executed: there is no need to preserve the execution context, since it 
+   * is invalid on reset (i.e., no process was previously executing).
+   */
+
+  dispatch( ctx, NULL, &procTab[ 0 ] );
+
   return;
 }
 
