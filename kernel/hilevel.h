@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <string.h>
+
 // Include functionality relating to the   kernel.
 
 #include "lolevel.h"
@@ -23,5 +25,32 @@
 #include   "GIC.h"
 #include "PL011.h"
 #include "SP804.h"
+
+
+#define MAX_PROCS 2
+
+typedef int pid_t;
+
+typedef enum { 
+  STATUS_INVALID,
+
+  STATUS_CREATED,
+  STATUS_TERMINATED,
+
+  STATUS_READY,
+  STATUS_EXECUTING,
+  STATUS_WAITING
+} status_t;
+
+typedef struct {
+  uint32_t cpsr, pc, gpr[ 13 ], sp, lr;
+} ctx_t;
+
+typedef struct {
+     pid_t    pid; // Process IDentifier (PID)
+  status_t status; // current status
+  uint32_t    tos; // address of Top of Stack (ToS)
+     ctx_t    ctx; // execution context
+} pcb_t;
 
 #endif
