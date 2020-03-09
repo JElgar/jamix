@@ -15,7 +15,7 @@
 .global lolevel_handler_svc
 
 lolevel_handler_rst: bl    int_init                @ initialise interrupt vector table
-
+                     
                      msr   cpsr, #0xD2             @ enter IRQ mode with IRQ and FIQ interrupts disabled
                      ldr   sp, =tos_irq            @ initialise IRQ mode stack
                      msr   cpsr, #0xD3             @ enter SVC mode with IRQ and FIQ interrupts disabled
@@ -23,42 +23,78 @@ lolevel_handler_rst: bl    int_init                @ initialise interrupt vector
                       
                      sub sp, sp, #68               @ Remove 68 from the stack pointer because reasons
                      mov r0, sp                    @ Store stack pointer in r0 to be parsed into function as context
-
+                     
                      bl    hilevel_handler_rst     @ invoke high-level C function
-                     b     .                       @ halt
+
+                     pop { r0, lr }                @ load     USR mode PC and CPSR
+                     msr   spsr, r0                @ move     USR mode        CPSR
+                     ldmia sp, { r0-r12, sp, lr }^ @ restore  USR mode registers
+                     add   sp, sp, #60             @ update   SVC mode SP
+                     movs  pc, lr                  @ return from interrupt
 
 lolevel_handler_irq: sub   lr, lr, #4              @ correct return address
                     
                      /* hilevel handler reqires a context, the context is the current state of any usr (as all programs run in usermode, registers)
                       * therefore push all these values onto stack and give the stack pointer as the pointer to the values on the stack
                       */
-                     sub sp, sp, #60               @ preset stack pointer so return to same posiiton after increment after
+                     sub   sp, sp, #60             @ update   SVC mode stack
+                     stmia sp, { r0-r12, sp, lr }^ @ preserve USR registers
+                     mrs   r0, spsr                @ move     USR        CPSR
+                     push { r0, lr }               @ store    USR PC and CPSR
+         
                      /* save    caller-save registers 
                       * ^ means user mode registers
                       *  cannot add register pc here because the order of register pushed onto stack is imporntatn and would be in "register order" otherwise
                       */
-                     stmia sp, { r0-r12, lr, sp }^  @ 
 
                      /* cannot push status register onto stack, instead push spsr which stores the previous *usr* mode value
                       * cannot just push spsr (cause its a status register
                       * therefore use mrs, which copies status register value, then push that register
                       */
-                     mrs r0, spsr
-                     push {pc, r0}
+                     /* Not sure why db used */
 
                      mov r0, sp                     
 
                      bl    hilevel_handler_irq     @ invoke high-level C function
+                     
+                     pop { r0, lr }                @ load     USR mode PC and CPSR
+                     msr   spsr, r0                @ move     USR mode        CPSR
+                     ldmia sp, { r0-r12, sp, lr }^ @ restore  USR mode registers
+                     add   sp, sp, #60             @ update   SVC mode SP
+                     movs  pc, lr                  @ return from interrupt
 
                      /* clean up stack and restore context. The final lines adds values of the new process, the rest remove the values and move the stack pointer to its previous location
                       */
-                     ldmfd sp!, { r0-r12, lr, sp }     @ restore caller-save registers
-                     movs  pc, lr                  @ return from interrupt
 
+/*
 lolevel_handler_svc: sub   lr, lr, #0              @ correct return address
-                     stmfd sp!, { r0-r3, ip, lr }  @ save    caller-save registers
+                     stmfd sp, { r0-r12, lr, sp }^  @ save    caller-save registers
+                     
+                     mrs r0, spsr
+                     stmdb sp, {r0, pc}
+                     mov r0, sp                     
 
                      bl    hilevel_handler_svc     @ invoke high-level C function
-
-                     ldmfd sp!, { r0-r3, ip, lr }  @ restore caller-save registers
+                     
+                     ldmia sp, {r0, pc}
+                     ldmfd sp, { r0-r12, lr, sp }^  @ restore caller-save registers
                      movs  pc, lr                  @ return from interrupt 
+*/
+
+lolevel_handler_svc:          
+                     sub   sp, sp, #60             @ update   SVC mode stack
+                     stmia sp, { r0-r12, sp, lr }^ @ preserve USR registers
+                     mrs   r0, spsr                @ move     USR        CPSR
+                     push { r0, lr }               @ store    USR PC and CPSR
+         
+                     mov   r0, sp                  @ set    high-level C function arg. = SP
+                     /* Gets operand of svc call to get value of svc call */
+                     ldr   r1, [ lr, #-4 ]         @ load                     svc instruction
+                     bic   r1, r1, #0xFF000000     @ set    high-level C function arg. = svc immediate
+                     bl    hilevel_handler_svc     @ invoke high-level C function
+        
+                     pop { r0, lr }                @ load     USR mode PC and CPSR
+                     msr   spsr, r0                @ move     USR mode        CPSR
+                     ldmia sp, { r0-r12, sp, lr }^ @ restore  USR mode registers
+                     add   sp, sp, #60             @ update   SVC mode SP
+                     movs  pc, lr                  @ return from interrupt

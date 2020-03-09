@@ -39,19 +39,15 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
-  if     ( executing->pid == procTab[ 0 ].pid ) {
-    dispatch( ctx, &procTab[ 0 ], &procTab[ 1 ] );  // context switch P_1 -> P_2
-
-    procTab[ 0 ].status = STATUS_READY;             // update   execution status  of P_1 
-    procTab[ 1 ].status = STATUS_EXECUTING;         // update   execution status  of P_2
+  for (int i = 0; i < MAX_PROCS; i++) {
+    if ( executing->pid == procTab[ i ].pid ) {
+      int next_p = i >= MAX_PROCS ? 0 : i+1;
+      dispatch( ctx, &procTab[ i ], &procTab[ next_p ] );
+      procTab[ i ].status = STATUS_READY;             // update   execution status  of P_1 
+      procTab[ next_p ].status = STATUS_EXECUTING;         // update   execution status  of P_2
+      break;
+    }
   }
-  else if( executing->pid == procTab[ 1 ].pid ) {
-    dispatch( ctx, &procTab[ 1 ], &procTab[ 0 ] );  // context switch P_2 -> P_1
-
-    procTab[ 1 ].status = STATUS_READY;             // update   execution status  of P_2
-    procTab[ 0 ].status = STATUS_EXECUTING;         // update   execution status  of P_1
-  }
-
   return;
 }
 
@@ -71,6 +67,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
 
   int_enable_irq();
   
+  // Process Table -> 0 -> p3 1 -> p4
   memset( &procTab[ 0 ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
   procTab[ 0 ].pid      = 1;
   procTab[ 0 ].status   = STATUS_READY;
@@ -97,7 +94,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   return;
 }
 
-void hilevel_handler_irq() {
+void hilevel_handler_irq( ctx_t* ctx ) {
   // Step 2: read  the interrupt identifier so we know the source.
 
   uint32_t id = GICC0->IAR;
@@ -107,6 +104,7 @@ void hilevel_handler_irq() {
   if( id == GIC_SOURCE_TIMER0 ) {
     // call the scheduler
     PL011_putc( UART0, 'T', true ); TIMER0->Timer1IntClr = 0x01;
+    schedule(ctx);
   }
 
   // Step 5: write the interrupt identifier to signal we're done.
@@ -116,6 +114,7 @@ void hilevel_handler_irq() {
   return;
 }
 
+/* theses are r0 and r1 in the lolelelv.c */
 void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) { 
   /* Based on the identifier (i.e., the immediate operand) extracted from the
    * svc instruction, 
