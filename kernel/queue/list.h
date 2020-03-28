@@ -1,7 +1,7 @@
 #include <stdbool.h>
 
 // Type for elements in list
-typedef void* data;
+typedef *void data;
 
 typedef struct list list;
 
@@ -41,4 +41,4 @@ bool deleteNext(list *l);
 bool deletePrevious(list *l);
 
 // Empty list node for error handling (basically void)
-list *newList();
+list *createList(data d);

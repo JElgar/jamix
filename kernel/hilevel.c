@@ -7,6 +7,8 @@
 
 #include "hilevel.h"
 
+#include "queue/queue.h"
+
 pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL;
 
 extern void     main_P3(); 
@@ -39,6 +41,9 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
+  // Add all processes to queue
+  
+  // Schedule next process
   for (int i = 0; i < MAX_PROCS; i++) {
     if ( executing->pid == procTab[ i ].pid ) {
       int next_p = i >= MAX_PROCS ? 0 : i+1;
