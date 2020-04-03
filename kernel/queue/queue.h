@@ -1,12 +1,11 @@
-#include <stdbool.h>
+#include "../hilevel.h"
 
-typedef int pid_t;
-typedef pid_t* qdata;
+typedef pcb_t* qdata;
 
 typedef struct queue queue;
 
 // Create a new queue
-queue *newQueue(qdata d);
+queue *newQueue();
 
 // Push - Place one item at the back of the queue
 qdata push(queue *q, qdata d);

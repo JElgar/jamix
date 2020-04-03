@@ -41,9 +41,39 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
+  /*
+  // Create a queue 
+  queue *q = newQueue();
   // Add all processes to queue
+  for (int i = 0; i < MAX_PROCS; i++) {
+   push(q, &procTab[ i ]);
+  }
   
+  for (int i = 0; i < MAX_PROCS; i++) {
+    // Find the process that is executing
+    if ( executing->pid == procTab[ i ].pid ) {
+      pcb_t *p = pop(q);
+      dispatch( ctx, &procTab[ i ], p );
+      procTab[ i ].status = STATUS_READY;             // update   execution status  of P_1 
+      p->status = STATUS_EXECUTING;         // update   execution status  of P_2
+      break;
+
+    }
+  }
+  // Pop processes off the queue untill its empty
+  // while (nextPid != NULL) {
+  //   dispatch( ctx, lastPid, nextPid );
+  //   lastPid->status = STATUS_READY;
+  //   nextPid->status = STATUS_EXECUTING;
+  //   lastPid = nextPid;
+  //   nextPid = pop(q);
+  //   break;
+  // }
+  
+  */ 
   // Schedule next process
+  /* 
+
   for (int i = 0; i < MAX_PROCS; i++) {
     if ( executing->pid == procTab[ i ].pid ) {
       int next_p = i >= MAX_PROCS ? 0 : i+1;
@@ -54,6 +84,32 @@ void schedule( ctx_t* ctx ) {
     }
   }
   return;
+   */
+  
+  queue *q = newQueue();
+  for (int i = 0; i < MAX_PROCS; i++) {
+    push(q, &procTab[ i ]);
+  }
+     
+  while (1) {
+    
+    pcb_t *last_p = pop(q);
+    for (int i = 0; i < MAX_PROCS; i++) {
+      if ( executing->pid == procTab[ i ].pid ) {
+        last_p = &procTab[ i ];
+        break;
+      }
+    }
+    pcb_t *next_p = pop(q);
+    dispatch( ctx, last_p, next_p );
+    last_p->status = STATUS_READY;         // update   execution status  of P_2
+    push (q, last_p);
+
+    next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
+  }
+    /* */
+    return;
+
 }
 
 void hilevel_handler_rst(ctx_t* ctx ) {
