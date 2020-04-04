@@ -41,50 +41,6 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
-  /*
-  // Create a queue 
-  queue *q = newQueue();
-  // Add all processes to queue
-  for (int i = 0; i < MAX_PROCS; i++) {
-   push(q, &procTab[ i ]);
-  }
-  
-  for (int i = 0; i < MAX_PROCS; i++) {
-    // Find the process that is executing
-    if ( executing->pid == procTab[ i ].pid ) {
-      pcb_t *p = pop(q);
-      dispatch( ctx, &procTab[ i ], p );
-      procTab[ i ].status = STATUS_READY;             // update   execution status  of P_1 
-      p->status = STATUS_EXECUTING;         // update   execution status  of P_2
-      break;
-
-    }
-  }
-  // Pop processes off the queue untill its empty
-  // while (nextPid != NULL) {
-  //   dispatch( ctx, lastPid, nextPid );
-  //   lastPid->status = STATUS_READY;
-  //   nextPid->status = STATUS_EXECUTING;
-  //   lastPid = nextPid;
-  //   nextPid = pop(q);
-  //   break;
-  // }
-  
-  */ 
-  // Schedule next process
-  /* 
-
-  for (int i = 0; i < MAX_PROCS; i++) {
-    if ( executing->pid == procTab[ i ].pid ) {
-      int next_p = i >= MAX_PROCS ? 0 : i+1;
-      dispatch( ctx, &procTab[ i ], &procTab[ next_p ] );
-      procTab[ i ].status = STATUS_READY;             // update   execution status  of P_1 
-      procTab[ next_p ].status = STATUS_EXECUTING;         // update   execution status  of P_2
-      break;
-    }
-  }
-  return;
-   */
      
     pcb_t *last_p = executing;
     pcb_t *next_p = pop(q);
@@ -93,7 +49,6 @@ void schedule( ctx_t* ctx ) {
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
     push (q, last_p);
 
-    /* */
     return;
 
 }
@@ -131,11 +86,14 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
   procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
 
+  int initalProc = 0;
   q = newQueue();
   // TODO Add everything from procTab into queue using loop 
   // push(q, &procTab[ 0 ]);
-  push(q, &procTab[ 1 ]);
-  
+  for ( int i; i < MAX_PROCS; i++ ) {
+    if (i != initalProc) push(q, &procTab[ i ]);
+  }
+
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
    * executed: there is no need to preserve the execution context, since it 
    * is invalid on reset (i.e., no process was previously executing).
