@@ -9,7 +9,7 @@
 
 #include "queue/queue.h"
 
-pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL;
+pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; queue *q;
 
 extern void     main_P3(); 
 extern uint32_t tos_P3;
@@ -85,28 +85,14 @@ void schedule( ctx_t* ctx ) {
   }
   return;
    */
-  
-  queue *q = newQueue();
-  for (int i = 0; i < MAX_PROCS; i++) {
-    push(q, &procTab[ i ]);
-  }
      
-  while (1) {
-    
-    pcb_t *last_p = pop(q);
-    for (int i = 0; i < MAX_PROCS; i++) {
-      if ( executing->pid == procTab[ i ].pid ) {
-        last_p = &procTab[ i ];
-        break;
-      }
-    }
+    pcb_t *last_p = executing;
     pcb_t *next_p = pop(q);
     dispatch( ctx, last_p, next_p );
     last_p->status = STATUS_READY;         // update   execution status  of P_2
+    next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
     push (q, last_p);
 
-    next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
-  }
     /* */
     return;
 
@@ -145,6 +131,11 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
   procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
 
+  q = newQueue();
+  // TODO Add everything from procTab into queue using loop 
+  // push(q, &procTab[ 0 ]);
+  push(q, &procTab[ 1 ]);
+  
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
    * executed: there is no need to preserve the execution context, since it 
    * is invalid on reset (i.e., no process was previously executing).

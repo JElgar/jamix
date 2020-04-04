@@ -39,7 +39,7 @@ qdata pop(queue *q) {
   // I think the issue is around here cause its probably return NULL to getPrevious, might be an issue with the linked list
   last(q->l);
   qdata d = (qdata)getPrevious(q->l);
-  last(q->l);
+  last(q->l); // TODO This should be unnecissary -> Will delete 
   deletePrevious(q->l);
   q->size = q->size - 1;
   return d;

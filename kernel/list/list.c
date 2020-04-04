@@ -54,7 +54,7 @@ bool next(list *l) {
   if(isLast(l)) {
     return false;
   } else {
-    l->current->next;
+    l->current = l->current->next;
     return true;
   }
 }
@@ -63,7 +63,7 @@ bool previous(list *l) {
   if(isFirst(l)) {
     return false;
   } else {
-    l->current->previous;
+    l-> current = l->current->previous;
     return true;
   }
 }
@@ -127,8 +127,8 @@ bool deleteNext(list *l) {
   if (isLast(l)) return false;
 
   item *current = l->current;
-  item *next = l->current->next;
-  item *previous = l->current->previous;
+  item *next = current->next;
+  item *previous = current->previous;
 
   next->previous = previous;
   previous->next = next;
