@@ -15,6 +15,8 @@ extern void     main_P3();
 extern uint32_t tos_P3;
 extern void     main_P4(); 
 extern uint32_t tos_P4;
+extern void     main_P6(); 
+extern uint32_t tos_P6;
 
 void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
   char prev_pid = '?', next_pid = '?';
@@ -85,13 +87,19 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 1 ].ctx.cpsr = 0x50;
   procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
   procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
+  
+  memset( &procTab[ 2 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
+  procTab[ 2 ].pid      = 3;
+  procTab[ 2 ].status   = STATUS_READY;
+  procTab[ 2 ].tos      = ( uint32_t )( &tos_P6  );
+  procTab[ 2 ].ctx.cpsr = 0x50;
+  procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P6 );
+  procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
 
-  int initalProc = 0;
   q = newQueue();
   // TODO Add everything from procTab into queue using loop 
   // push(q, &procTab[ 0 ]);
-  for ( int i; i < MAX_PROCS; i++ ) {
-    // if (i != initalProc) push(q, &procTab[ i ]);
+  for ( int i; i < 3; i++ ) {
     push(q, &procTab[ i ]);
   }
 
