@@ -47,7 +47,7 @@ void schedule( ctx_t* ctx ) {
     dispatch( ctx, last_p, next_p );
     last_p->status = STATUS_READY;         // update   execution status  of P_2
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
-    push (q, last_p);
+    if ( last_p != NULL ) push (q, last_p);
 
     return;
 
@@ -91,7 +91,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   // TODO Add everything from procTab into queue using loop 
   // push(q, &procTab[ 0 ]);
   for ( int i; i < MAX_PROCS; i++ ) {
-    if (i != initalProc) push(q, &procTab[ i ]);
+    // if (i != initalProc) push(q, &procTab[ i ]);
+    push(q, &procTab[ i ]);
   }
 
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
@@ -99,7 +100,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
    * is invalid on reset (i.e., no process was previously executing).
    */
 
-  dispatch( ctx, NULL, &procTab[ 0 ] );
+  // dispatch( ctx, NULL, &procTab[ 0 ] );
+  schedule ( ctx );
 
   return;
 }
