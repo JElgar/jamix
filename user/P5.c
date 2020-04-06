@@ -33,5 +33,7 @@ void main_P5() {
     }
   }
 
+  write( STDOUT_FILENO, "SS", 2 );
+  // Need to handle EXIT_SUCCESS
   exit( EXIT_SUCCESS );
 }

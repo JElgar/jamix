@@ -47,16 +47,9 @@ void schedule( ctx_t* ctx ) {
     pcb_t *last_p = executing;
     pcb_t *next_p = pop(q);
     dispatch( ctx, last_p, next_p );
-
+    last_p->status = STATUS_READY;         // update   execution status  of P_2
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
-
-    // If the last process was NULL or has TERMINATED do not add it to the queue
-    // Otherwise add it to the queue and set as ready
-    if ( last_p != NULL && last_p->status != STATUS_TERMINATED ) { 
-      last_p->status = STATUS_READY;         // update   execution status  of P_2
-      push (q, last_p);
-    }
-
+    if ( last_p != NULL && last_p.status != STATUS_TERMINATED ) push (q, last_p);
 
     return;
 
@@ -170,11 +163,10 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     
-    case 0x04 : { // 0x04 => Set executing process to TERMINATED
+    case 0x04 : { // 0x01 => write( fd, x, n )
 
       PL011_putc( UART0, 'F', true );
-      //procTab[ 2 ].status = STATUS_TERMINATED;
-      executing->status = STATUS_TERMINATED;
+      procTab[ 3 ].status = STATUS_TERMINATED;
       schedule ( ctx );
 
       break;

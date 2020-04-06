@@ -29,5 +29,6 @@ void main_P3() {
     }
   }
 
+  write( STDOUT_FILENO, "Suc", 3 );
   exit( EXIT_SUCCESS );
 }

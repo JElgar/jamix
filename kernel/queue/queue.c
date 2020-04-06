@@ -48,6 +48,5 @@ qdata pop(queue *q) {
 // Free queue
 void freeQueue(queue *q) {
   freeList(q->l);
-  // TODO I dont have to do any freeing of the size right?
   free(q);
 }
