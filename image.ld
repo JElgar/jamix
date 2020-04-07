@@ -31,12 +31,6 @@ SECTIONS {
   tos_svc = .;
   /* temp allocation                 */
   /* allocate stack for P1           */
-  .       = . + 0x00001000;  
-  tos_P3  = .;
-  /* allocate stack for P2           */
-  .       = . + 0x00001000;  
-  tos_P4  = .;
-  /* allocate stack for P3           */
-  .       = . + 0x00001000;  
-  tos_P5  = .;
+  .       = . + 0x00003000;  
+  tos_P  = .;
 }

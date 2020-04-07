@@ -8,9 +8,7 @@
 #include "hilevel.h"
 
 #include "queue/queue.h"
-
-pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; queue *q;
-
+pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; queue *q; 
 extern void     main_P3(); 
 extern uint32_t tos_P3;
 extern void     main_P4(); 
@@ -47,9 +45,16 @@ void schedule( ctx_t* ctx ) {
     pcb_t *last_p = executing;
     pcb_t *next_p = pop(q);
     dispatch( ctx, last_p, next_p );
-    last_p->status = STATUS_READY;         // update   execution status  of P_2
+
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
-    if ( last_p != NULL && last_p.status != STATUS_TERMINATED ) push (q, last_p);
+
+    // If the last process was NULL or has TERMINATED do not add it to the queue
+    // Otherwise add it to the queue and set as ready
+    if ( last_p != NULL && last_p->status != STATUS_TERMINATED ) { 
+      last_p->status = STATUS_READY;         // update   execution status  of P_2
+      push (q, last_p);
+    }
+
 
     return;
 
@@ -95,6 +100,12 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 2 ].ctx.cpsr = 0x50;
   procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
   procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
+ 
+  current = &tos_P
+  size = sizeof(tos_P) / MAX_PROCS
+  for ( int i; i < MAX_PROCS; i++ ) {
+    procTab[i].tos = ( uint32_t )( current );
+  }
 
   q = newQueue();
   for ( int i; i < MAX_PROCS; i++ ) {
@@ -163,10 +174,11 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     
-    case 0x04 : { // 0x01 => write( fd, x, n )
+    case 0x04 : { // 0x04 => Set executing process to TERMINATED
 
       PL011_putc( UART0, 'F', true );
-      procTab[ 3 ].status = STATUS_TERMINATED;
+      //procTab[ 2 ].status = STATUS_TERMINATED;
+      executing->status = STATUS_TERMINATED;
       schedule ( ctx );
 
       break;
