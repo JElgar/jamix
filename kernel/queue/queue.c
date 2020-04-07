@@ -21,7 +21,7 @@ queue *newQueue() {
 }
 
 // Push - Place one item at the back of the queue
-qdata push(queue *q, qdata d) {
+void push(queue *q, qdata d) {
   first(q->l);
   insertNext(q->l, (void*)d);
   q->size = q->size + 1;

@@ -1,22 +1,22 @@
 #include "../hilevel.h"
 
-typedef pcb_t* qdata;
+typedef pcb_t* pqdata;
 
-typedef struct queue queue;
+typedef struct pqueue pqueue;
 
-typedef struct qitem {
-  qdata data;
+typedef struct pqitem {
+  pqdata data;
   int priority;
-} qitem;
+} pqitem;
 
 // Create a new queue
-queue *newQueue();
+pqueue *newPriorityQueue();
 
 // Push - Place one item at the back of the queue
-qdata push(queue *q, qdata d, int p);
+void pqPush(pqueue *pq, pqdata d, int p);
 
 // Pop - Remove one item from the front of the queue
-qdata pop(queue *q);
+pqdata pqPop(pqueue *q);
 
 // Free queue
-void freeQueue(queue *q);
+void freePriorityQueue(queue *q);

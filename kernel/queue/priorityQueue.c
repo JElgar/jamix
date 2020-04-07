@@ -5,50 +5,79 @@
 #include "../list/list.h"
 #include "../hilevel.h"
 
-typedef pcb_t* qdata;
+typedef pcb_t* pqdata;
 
-typedef struct queue {
+typedef struct pqueue {
   list *l;
   int size;
-} queue;
+} pqueue;
+
+typedef struct pqitem {
+  pqdata data;
+  int priority;
+} pqitem;
 
 
 
 // Create a new queue
-queue *newQueue() {
-  queue *q = malloc(sizeof(queue));
-  q->l = newList();
-  q->size = 0;
-  return q;
+pqueue *newPriorityQueue() {
+  pqueue *pq = malloc(sizeof(pqueue));
+  pq->l = newList();
+  pq->size = 0;
+  return pq;
 }
 
 // Push - Place one item at the back of the queue
-qdata push(queue *q, qdata d) {
-  first(q->l);
-  insertNext(q->l, (void*)d);
-  q->size = q->size + 1;
+void pqPush(pqueue *pq, pqdata d, int priority) {
+  first(pq->l);
+  pqitem *item = malloc(sizeof(pqitem));
+  item->data = d;
+  item->priority = priority;
+
+  // Bigger number = less important
+  // Go until the next item has lower priority that this 
+  int currentp = ((pqitem*) getNext(pq->l))->priority;
+  while (currentp < priority) {
+    next(pq->l);
+    int currentp = ((pqitem*) getNext(pq->l))->priority;
+  }
+  insertNext(pq->l, (void*)item);
+  pq->size = pq->size + 1;
 }
 
 // Pop - Remove one item from the front of the queue
 // TODO what happens when queue is empty
-qdata pop(queue *q) {
+pqdata pqPop(pqueue *pq) {
   // If the queue is empty
-  if (q->size = 0) {
+  if (pq->size = 0) {
     return NULL;
   }
  
-
+  // TODO check what im on about
   // I think the issue is around here cause its probably return NULL to getPrevious, might be an issue with the linked list
-  last(q->l);
-  qdata d = (qdata)getPrevious(q->l);
-  last(q->l); // TODO This should be unnecissary -> Will delete 
-  deletePrevious(q->l);
-  q->size = q->size - 1;
-  return d;
+  last(pq->l);
+  pqitem *i = (pqitem*) getPrevious(pq->l);
+  last(pq->l); // TODO This should be unnecissary -> Will delete 
+  deletePrevious(pq->l);
+  pq->size = pq->size - 1;
+  return i;
+}
+
+// Look at the next item in the queue, if its 
+pqdata pqPeep(pqueue *pq) {
+  // If the queue is empty
+  if (pq->size = 0) {
+    return NULL;
+  }
+ 
+  last(pq->l);
+  pqitem *i = (pqitem*) getPrevious(pq->l);
+  return i;
 }
 
 // Free queue
-void freeQueue(queue *q) {
-  freeList(q->l);
-  free(q);
+void freePriorityQueue(pqueue *pq) {
+  freeList(pq->l);
+  // TODO check no memory leak here
+  free(pq);
 }
