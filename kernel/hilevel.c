@@ -17,6 +17,7 @@ extern void     main_P4();
 extern uint32_t tos_P4;
 extern void     main_P5(); 
 extern uint32_t tos_P5;
+extern uint32_t tos_P;
 
 void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
   char prev_pid = '?', next_pid = '?';
@@ -102,6 +103,12 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 2 ].ctx.cpsr = 0x50;
   procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
   procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
+
+  // Asign memory for each proccess
+  memPerProc = sizeof(tos_P) / MAX_PROCS;
+  for (int i; i < MAX_PROCS; i++) {
+    tos_P1 
+  } 
 
   q = newQueue();
   for ( int i; i < MAX_PROCS; i++ ) {
