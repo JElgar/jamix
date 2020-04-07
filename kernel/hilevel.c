@@ -84,7 +84,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   //procTab[ 0 ].tos      = ( uint32_t )( &tos_P3  );
   procTab[ 0 ].ctx.cpsr = 0x50;
   procTab[ 0 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  procTab[ 0 ].ctx.sp   = procTab[ 0 ].tos;
+  //procTab[ 0 ].ctx.sp   = procTab[ 0 ].tos;
 
   memset( &procTab[ 1 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
   procTab[ 1 ].pid      = 2;
@@ -92,7 +92,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   //procTab[ 1 ].tos      = ( uint32_t )( &tos_P4  );
   procTab[ 1 ].ctx.cpsr = 0x50;
   procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
-  procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
+  //procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
   
   memset( &procTab[ 2 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
   procTab[ 2 ].pid      = 3;
@@ -100,18 +100,21 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   //procTab[ 2 ].tos      = ( uint32_t )( &tos_P5  );
   procTab[ 2 ].ctx.cpsr = 0x50;
   procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
-  procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
+  //procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
  
   uint32_t current = ( uint32_t ) &tos_P;
-  uint32_t size = sizeof(tos_P) / MAX_PROCS;
-  for ( int i; i < MAX_PROCS; i++ ) {
+  uint32_t size = 0x00003000 / MAX_PROCS;
+  if (size < 0x00000500) {
+    PL011_putc( UART0, 'B', true );
+  }
+  for ( int i = 0; i < MAX_PROCS; i++ ) {
     procTab[i].tos = ( uint32_t )( current );
     procTab[i].ctx.sp = procTab[i].tos;
     current += size;
   }
 
   q = newQueue();
-  for ( int i; i < MAX_PROCS; i++ ) {
+  for ( int i = 0; i < MAX_PROCS; i++ ) {
     push(q, &procTab[ i ]);
   }
 
