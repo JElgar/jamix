@@ -7,8 +7,8 @@
 
 #include "hilevel.h"
 
-#include "queue/queue.h"
-pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; queue *q; 
+#include "queue/priorityQueue.h"
+pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; priorityQueue *q; 
 extern void     main_P3(); 
 //extern uint32_t tos_P3;
 extern void     main_P4(); 
@@ -44,7 +44,7 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 void schedule( ctx_t* ctx ) {
      
     pcb_t *last_p = executing;
-    pcb_t *next_p = pop(q);
+    pcb_t *next_p = ((struct pqitem*) pqPop(q))->data;
     dispatch( ctx, last_p, next_p );
 
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
@@ -53,7 +53,7 @@ void schedule( ctx_t* ctx ) {
     // Otherwise add it to the queue and set as ready
     if ( last_p != NULL && last_p->status != STATUS_TERMINATED ) { 
       last_p->status = STATUS_READY;         // update   execution status  of P_2
-      push (q, last_p);
+      pqPush (q, last_p, 1);
     }
 
 
@@ -111,9 +111,9 @@ void hilevel_handler_rst(ctx_t* ctx ) {
     current -= size;
   }
 
-  q = newQueue();
+  q = newPriorityQueue();
   for ( int i = 0; i < MAX_PROCS; i++ ) {
-    push(q, &procTab[ i ]);
+    pqPush(q, &procTab[ i ], 1);
   }
 
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
