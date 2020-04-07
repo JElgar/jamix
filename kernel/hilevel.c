@@ -101,16 +101,14 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab[ 2 ].ctx.cpsr = 0x50;
   procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
   //procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
- 
+
+  // TODO Wait a sec do i need to be taking away
   uint32_t current = ( uint32_t ) &tos_P;
   uint32_t size = 0x00003000 / MAX_PROCS;
-  if (size < 0x00000500) {
-    PL011_putc( UART0, 'B', true );
-  }
   for ( int i = 0; i < MAX_PROCS; i++ ) {
     procTab[i].tos = ( uint32_t )( current );
     procTab[i].ctx.sp = procTab[i].tos;
-    current += size;
+    current -= size;
   }
 
   q = newQueue();
