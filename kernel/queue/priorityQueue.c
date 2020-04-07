@@ -29,11 +29,13 @@ void pqPush(priorityQueue *pq, pqdata d, int priority) {
 
   // Bigger number = less important
   // Go until the next item has lower priority that this 
-  //int currentp = ((struct pqitem) getNext(pq->l))->priority;
-  //while (currentp < priority) {
-  //  next(pq->l);
-  //  int currentp = ((struct pqitem) getNext(pq->l))->priority;
-  //}
+  if (pq->size > 0 ) {
+    int currentp = ((struct pqitem*) getNext(pq->l))->priority;
+    while ( priority <= currentp ) {
+      next(pq->l);
+      currentp = ((struct pqitem*) getNext(pq->l))->priority;
+    }
+  }
   insertNext(pq->l, (void*)item);
   pq->size = pq->size + 1;
 }

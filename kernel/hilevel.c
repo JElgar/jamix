@@ -17,6 +17,8 @@ extern void     main_P5();
 //extern uint32_t tos_P5;
 extern uint32_t tos_P;
 
+int last_priority = 0;
+
 void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
   char prev_pid = '?', next_pid = '?';
 
@@ -42,9 +44,10 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
-     
+    // DO i need to add p5 back to the queue before swapping to the next item? I think now is too late
     pcb_t *last_p = executing;
-    pcb_t *next_p = ((struct pqitem*) pqPop(q))->data;
+    pqitem *next_item = (struct pqitem*) pqPop(q);
+    pcb_t *next_p = next_item->data;
     dispatch( ctx, last_p, next_p );
 
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
@@ -53,9 +56,9 @@ void schedule( ctx_t* ctx ) {
     // Otherwise add it to the queue and set as ready
     if ( last_p != NULL && last_p->status != STATUS_TERMINATED ) { 
       last_p->status = STATUS_READY;         // update   execution status  of P_2
-      pqPush (q, last_p, 1);
+      pqPush (q, last_p, last_priority);
     }
-
+    last_priority = next_item->priority;
 
     return;
 
@@ -113,7 +116,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
 
   q = newPriorityQueue();
   for ( int i = 0; i < MAX_PROCS; i++ ) {
-    pqPush(q, &procTab[ i ], 1);
+    int priority = i == 2 ? 1 : 2;
+    pqPush(q, &procTab[ i ], priority);
   }
 
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
