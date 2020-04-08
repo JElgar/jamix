@@ -85,12 +85,13 @@ void* load( char* x ) {
  */
 
 void main_console() {
+  PL011_putc( UART0, 'C', true );
   while( 1 ) {
     char cmd[ MAX_CMD_CHARS ];
 
     // step 1: write command prompt, then read command.
 
-    puts( "console$ ", 7 ); gets( cmd, MAX_CMD_CHARS );
+    puts( "console$ ", 9 ); gets( cmd, MAX_CMD_CHARS );
 
     // step 2: tokenize command.
 

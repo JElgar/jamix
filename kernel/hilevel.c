@@ -10,11 +10,9 @@
 #include "queue/priorityQueue.h"
 pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; priorityQueue *q; 
 extern void     main_P3(); 
-//extern uint32_t tos_P3;
 extern void     main_P4(); 
-//extern uint32_t tos_P4;
 extern void     main_P5(); 
-//extern uint32_t tos_P5;
+extern void     main_console(); 
 extern uint32_t tos_P;
 
 int last_priority = 0;
@@ -84,43 +82,27 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   int_enable_irq();
   
   // Process Table -> 0 -> p3 1 -> p4
-  memset( &procTab[ 0 ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
-  procTab[ 0 ].pid      = 1;
-  procTab[ 0 ].status   = STATUS_READY;
-  //procTab[ 0 ].tos      = ( uint32_t )( &tos_P3  );
-  procTab[ 0 ].ctx.cpsr = 0x50;
-  procTab[ 0 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  //procTab[ 0 ].ctx.sp   = procTab[ 0 ].tos;
-
-  memset( &procTab[ 1 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
-  procTab[ 1 ].pid      = 2;
-  procTab[ 1 ].status   = STATUS_READY;
-  //procTab[ 1 ].tos      = ( uint32_t )( &tos_P4  );
-  procTab[ 1 ].ctx.cpsr = 0x50;
-  procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
-  //procTab[ 1 ].ctx.sp   = procTab[ 1 ].tos;
-  
-  memset( &procTab[ 2 ], 0, sizeof( pcb_t ) ); // initialise 1-st PCB = P_2
-  procTab[ 2 ].pid      = 3;
-  procTab[ 2 ].status   = STATUS_READY;
-  //procTab[ 2 ].tos      = ( uint32_t )( &tos_P5  );
-  procTab[ 2 ].ctx.cpsr = 0x50;
-  procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
-  //procTab[ 2 ].ctx.sp   = procTab[ 2 ].tos;
-
-  // TODO Wait a sec do i need to be taking away
   uint32_t current = ( uint32_t ) &tos_P;
   uint32_t size = 0x00003000 / MAX_PROCS;
   for ( int i = 0; i < MAX_PROCS; i++ ) {
-    procTab[i].tos = ( uint32_t )( current );
-    procTab[i].ctx.sp = procTab[i].tos;
+    memset( &procTab[ i ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
+    procTab[i].status     = STATUS_READY;
+    procTab[i].pid        = i + 1;
+    procTab[i].tos        = ( uint32_t )( current );
+    procTab[i].ctx.cpsr   = 0x50;
+    procTab[i].ctx.sp     = procTab[i].tos;
     current -= size;
   }
+  
+  procTab[ 0 ].ctx.pc   = ( uint32_t )( &main_P3 );
+  procTab[ 1 ].ctx.pc   = ( uint32_t )( &main_P4 );
+  procTab[ 2 ].ctx.pc   = ( uint32_t )( &main_P5 );
+  procTab[ 3 ].ctx.pc   = ( uint32_t )( &main_console );
 
   q = newPriorityQueue();
   for ( int i = 0; i < MAX_PROCS; i++ ) {
-    int priority = i == 2 ? 1 : 2;
-    priority = i == 1 ? 3 : priority;
+    int priority = i == 3 ? 1 : 2;
+    //priority = i == 1 ? 3 : priority;
     pqPush(q, &procTab[ i ], priority);
   }
 
