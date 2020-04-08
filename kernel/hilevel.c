@@ -46,6 +46,9 @@ void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
 void schedule( ctx_t* ctx ) {
     // DO i need to add p5 back to the queue before swapping to the next item? I think now is too late
     pcb_t *last_p = executing;
+    if (last_p != NULL && last_p->status != STATUS_TERMINATED && last_priority < ((struct pqitem*) pqPeek(q))->priority) {
+      return;    
+    }
     pqitem *next_item = (struct pqitem*) pqPop(q);
     pcb_t *next_p = next_item->data;
     dispatch( ctx, last_p, next_p );
@@ -117,6 +120,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   q = newPriorityQueue();
   for ( int i = 0; i < MAX_PROCS; i++ ) {
     int priority = i == 2 ? 1 : 2;
+    priority = i == 1 ? 3 : priority;
     pqPush(q, &procTab[ i ], priority);
   }
 

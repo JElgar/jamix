@@ -19,5 +19,8 @@ void pqPush(priorityQueue *pq, pqdata d, int p);
 // Pop - Remove one item from the front of the queue
 pqitem *pqPop(priorityQueue *pq);
 
+// Peek - return (without removing) first item from in queue
+pqitem *pqPeek(priorityQueue *pq);
+
 // Free queue
 void freePriorityQueue(priorityQueue *pq);

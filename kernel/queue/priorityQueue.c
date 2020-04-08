@@ -59,7 +59,7 @@ pqitem *pqPop(priorityQueue *pq) {
 }
 
 // Look at the next item in the queue, if its 
-pqitem *pqPeep(priorityQueue *pq) {
+pqitem *pqPeek(priorityQueue *pq) {
   // If the queue is empty
   if (pq->size = 0) {
     return NULL;
