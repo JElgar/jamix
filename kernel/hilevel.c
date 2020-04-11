@@ -18,7 +18,8 @@ extern uint32_t tos_P;
 int last_priority = 0;
 int number_of_procs = 0;
 
-uint32_t procStackSize = 0x00020000 / MAX_PROCS;
+uint32_t procStackSize = 0x1000;
+//uint32_t procStackSize = 0x00020000 / MAX_PROCS;
 
 void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
   char prev_pid = '?', next_pid = '?';
@@ -68,7 +69,16 @@ void schedule( ctx_t* ctx ) {
 }
 
 void addProcess ( uint32_t proc ) {
-  procTab[ number_of_procs ].ctx.pc = proc;
+  pcb_t *newProc = &procTab [ number_of_procs ];
+  memset( newProc, 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
+  newProc->status     = STATUS_READY;
+  newProc->pid        = number_of_procs;
+  newProc->tos        = ( uint32_t )( tos_P - number_of_procs*procStackSize);
+  newProc->ctx.pc = proc;
+  newProc->ctx.cpsr   = 0x50;
+  newProc->ctx.sp     = procTab[number_of_procs - 1].tos;
+
+  // TODO if stuff breaks try switching to plus
   number_of_procs++;
 }
 
@@ -79,7 +89,7 @@ uint32_t copyProcess ( pcb_t* proc ) {
   proc [ addingProc ].ctx.sp = proc [ addingProc ].tos - stackPointerDistance;
   memcpy ( (void *) proc[ addingProc ].ctx.sp , (void *) proc->ctx.sp ,  procStackSize );
   procTab[ addingProc ].ctx.pc = proc->ctx.pc;
-  procTab[ addingProc ].ctx.gpr[0] = 0;
+  //procTab[ addingProc ].ctx.gpr[0] = 0;
   pqPush (q, &procTab[addingProc], 2 );
   return procTab[ addingProc ].pid;
 }
@@ -104,15 +114,6 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   uint32_t current = ( uint32_t ) &tos_P;
   //uint32_t size = 0x00020000 / MAX_PROCS;
   for ( int i = 0; i < MAX_PROCS; i++ ) {
-    memset( &procTab[ i ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
-    procTab[i].status     = STATUS_READY;
-    procTab[i].pid        = i + 1;
-    procTab[i].tos        = ( uint32_t )( current );
-    procTab[i].ctx.cpsr   = 0x50;
-    procTab[i].ctx.sp     = procTab[i].tos;
-
-    // TODO if stuff breaks try switching to plus
-    current -= procStackSize;
   }
   
 
@@ -198,30 +199,34 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x03 : { // Fork
       PL011_putc( UART0, 'F', true );
 
-      //addProcess ( ctx->pc ); // Add proccess to proc tab
-      //pcb_t* child = &procTab[ number_of_procs - 1 ];
-      //memcpy ( &child->ctx , ctx , sizeof( ctx_t ));
-      //uint32_t stackPointerDistance = executing->tos - ctx->sp;
-      //child->ctx.sp = child->tos - stackPointerDistance;
-      //memcpy ( (uint32_t *) child->ctx.sp , (uint32_t *) ctx->sp ,  procStackSize );
-      //pqPush (q, child, 2 );
-      //child->ctx.gpr[0] = 0;
-      ////ctx->gpr[ 0 ] = child->pid;
+      addProcess ( ctx->pc ); // Add proccess to proc tab
+      pcb_t* child = &procTab[ number_of_procs - 1 ];
+      memcpy ( &child->ctx , ctx , sizeof( ctx_t ));
+      uint32_t stackPointerDistance = executing->tos - ctx->sp;
+      child->ctx.sp = child->tos - stackPointerDistance;
+      memcpy ( (uint32_t *) child->ctx.sp , (uint32_t *) ctx->sp ,  procStackSize );
+      pqPush (q, child, 2 );
+      child->ctx.gpr[0] = 0;
+      ctx->gpr[ 0 ] = child->pid;
       //ctx->gpr[ 0 ] = 0;
-      ctx->gpr[0] = copyProcess(executing);
-      ctx->gpr[0] = 0;
+      //ctx->gpr[0] = copyProcess(executing);
+      //ctx->gpr[0] = 0;
       break;
     } // SVC when process finishes execution
     case 0x04 : { // 0x04 => Set executing process to TERMINATED
-
+     
+      // TODO
+      // Delete from proc tab
+      // Execute = null
       PL011_putc( UART0, 'F', true );
       executing->status = STATUS_TERMINATED;
       schedule ( ctx );
 
       break;
     }
-    case 0x05 : {
-      procTab[ number_of_procs - 1 ].ctx.pc = ctx->gpr[ 0 ];
+    case 0x05 : { // Execute
+      ctx->pc = ctx->gpr[ 0 ];
+      ctx->sp = executing->tos;
       break;
     }
 
