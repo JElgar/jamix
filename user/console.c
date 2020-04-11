@@ -16,9 +16,7 @@ void puts( char* x, int n ) {
   for( int i = 0; i < n; i++ ) {
     PL011_putc( UART1, x[ i ], true );
   }
-}
-
-void gets( char* x, int n ) {
+} void gets( char* x, int n ) {
   for( int i = 0; i < n; i++ ) {
     x[ i ] = PL011_getc( UART1, true );
     
@@ -108,6 +106,7 @@ void main_console() {
 
       if( addr != NULL ) {
         if( 0 == fork() ) {
+          puts( "\n fork == 0 \n", 13 );
           exec( addr );
         }
       }

@@ -91,6 +91,7 @@ int  read( int fd,       void* x, size_t n ) {
   return r;
 }
 
+// Clone the current process
 int  fork() {
   int r;
 
