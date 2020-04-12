@@ -18,7 +18,6 @@
 
 // Include functionality relating to the   kernel.
 
-#include "lolevel.h"
 #include     "int.h"
 
 // Include timer, GIC (general input controller) and uart, (universal asyncrynous transmit recieve)

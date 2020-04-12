@@ -106,7 +106,6 @@ void main_console() {
 
       if( addr != NULL ) {
         if( 0 == fork() ) {
-          puts( "\n fork == 0 \n", 13 );
           exec( addr );
         }
       }

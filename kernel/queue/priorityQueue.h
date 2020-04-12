@@ -29,5 +29,8 @@ pqitem *pqPop(priorityQueue *pq);
 // Peek - return (without removing) first item from in queue
 pqitem *pqPeek(priorityQueue *pq);
 
+// Delete the process with the given pid
+void deleteItem(priorityQueue *pq, uint32_t pid);
+
 // Free queue
 void freePriorityQueue(priorityQueue *pq);

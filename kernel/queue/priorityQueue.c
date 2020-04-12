@@ -20,7 +20,7 @@ void pqPush(priorityQueue *pq, pqdata d, int priority) {
   // Go until the next item has lower priority that this 
   if (pq->size > 0 ) {
     int currentp = ((struct pqitem*) getNext(pq->l))->priority;
-    while ( priority <= currentp ) {
+    while ( priority < currentp ) {
       next(pq->l);
       currentp = ((struct pqitem*) getNext(pq->l))->priority;
     }
@@ -33,7 +33,7 @@ void pqPush(priorityQueue *pq, pqdata d, int priority) {
 // TODO what happens when queue is empty
 pqitem *pqPop(priorityQueue *pq) {
   // If the queue is empty
-  if (pq->size = 0) {
+  if (pq->size == 0) {
     return NULL;
   }
  
@@ -41,7 +41,6 @@ pqitem *pqPop(priorityQueue *pq) {
   // I think the issue is around here cause its probably return NULL to getPrevious, might be an issue with the linked list
   last(pq->l);
   pqitem *i = (struct pqitem*) getPrevious(pq->l);
-  last(pq->l); // TODO This should be unnecissary -> Will delete 
   deletePrevious(pq->l);
   pq->size = pq->size - 1;
   return i;
@@ -50,13 +49,24 @@ pqitem *pqPop(priorityQueue *pq) {
 // Look at the next item in the queue, if its 
 pqitem *pqPeek(priorityQueue *pq) {
   // If the queue is empty
-  if (pq->size = 0) {
+  if (pq->size == 0) {
     return NULL;
   }
  
   last(pq->l);
   pqitem *i = (struct pqitem*) getPrevious(pq->l);
   return i;
+}
+
+void deleteItem (priorityQueue *pq, uint32_t pid) {
+  first(pq->l);
+  pqitem* del = ((struct pqitem*) getNext(pq->l));
+  while(del->data->pid != pid) {
+    next(pq->l);
+    del = ((struct pqitem*) getNext(pq->l));
+  }
+  deleteNext(pq->l);
+  pq->size--;
 }
 
 // Free queue
