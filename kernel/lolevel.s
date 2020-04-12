@@ -40,7 +40,8 @@ lolevel_handler_irq: sub   lr, lr, #4              @ correct return address
                      sub   sp, sp, #60             @ update   SVC mode stack
                      stmia sp, { r0-r12, sp, lr }^ @ preserve USR registers
                      mrs   r0, spsr                @ move     USR        CPSR
-                     push { r0, lr }               @ store    USR PC and CPSR
+                     /*push { r0, lr }               @ store    USR PC and CPSR*/
+                     stmdb sp!, {r0, lr}
          
                      /* save    caller-save registers 
                       * ^ means user mode registers
@@ -57,7 +58,8 @@ lolevel_handler_irq: sub   lr, lr, #4              @ correct return address
 
                      bl    hilevel_handler_irq     @ invoke high-level C function
                      
-                     pop { r0, lr }                @ load     USR mode PC and CPSR
+                     ldmia sp!, { r0, lr}
+                     /*pop { r0, lr }                @ load     USR mode PC and CPSR*/
                      msr   spsr, r0                @ move     USR mode        CPSR
                      ldmia sp, { r0-r12, sp, lr }^ @ restore  USR mode registers
                      add   sp, sp, #60             @ update   SVC mode SP
@@ -82,10 +84,12 @@ lolevel_handler_svc: sub   lr, lr, #0              @ correct return address
 */
 
 lolevel_handler_svc:          
+                     sub   lr, lr, #0              @ update   SVC mode stack
                      sub   sp, sp, #60             @ update   SVC mode stack
                      stmia sp, { r0-r12, sp, lr }^ @ preserve USR registers
                      mrs   r0, spsr                @ move     USR        CPSR
-                     push { r0, lr }               @ store    USR PC and CPSR
+                     stmdb sp!, {r0, lr}
+                     /*push { r0, lr }               @ store    USR PC and CPSR*/
          
                      mov   r0, sp                  @ set    high-level C function arg. = SP
                      /* Gets operand of svc call to get value of svc call */
@@ -93,7 +97,8 @@ lolevel_handler_svc:
                      bic   r1, r1, #0xFF000000     @ set    high-level C function arg. = svc immediate
                      bl    hilevel_handler_svc     @ invoke high-level C function
         
-                     pop { r0, lr }                @ load     USR mode PC and CPSR
+                     /*pop { r0, lr }                @ load     USR mode PC and CPSR*/
+                     ldmia sp!, { r0, lr}
                      msr   spsr, r0                @ move     USR mode        CPSR
                      ldmia sp, { r0-r12, sp, lr }^ @ restore  USR mode registers
                      add   sp, sp, #60             @ update   SVC mode SP

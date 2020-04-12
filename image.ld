@@ -33,5 +33,4 @@ SECTIONS {
   /* allocate stack for P1           */
   .       = . + 0x00001000 * 10;
   tos_P   = .;
-  '
 }

@@ -18,8 +18,8 @@ extern uint32_t tos_P;
 int last_priority = 0;
 int number_of_procs = 0;
 
-uint32_t procStackSize = 0x1000;
-//uint32_t procStackSize = 0x00020000 / MAX_PROCS;
+//.uint32_t procStackSize = 0x1000;
+uint32_t procStackSize = 0x00020000 / MAX_PROCS;
 
 void dispatch( ctx_t* ctx, pcb_t* prev, pcb_t* next ) {
   char prev_pid = '?', next_pid = '?';
@@ -68,15 +68,16 @@ void schedule( ctx_t* ctx ) {
 
 }
 
-void addProcess ( uint32_t proc ) {
+void addProcess ( uint32_t pc ) {
+  memset( &procTab[ number_of_procs ], 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
   pcb_t *newProc = &procTab [ number_of_procs ];
-  memset( newProc, 0, sizeof( pcb_t ) ); // initialise 0-th PCB = P_1
   newProc->status     = STATUS_READY;
-  newProc->pid        = number_of_procs;
-  newProc->tos        = ( uint32_t )( tos_P - number_of_procs*procStackSize);
-  newProc->ctx.pc = proc;
+  newProc->pid        = number_of_procs + 1;
+  newProc->tos        = ( uint32_t )(&tos_P) - number_of_procs*procStackSize;
+  //memset( &newProc->ctx, 0, sizeof( ctx_t ) ); // initialise 0-th PCB = P_1
+  newProc->ctx.pc     = pc;
   newProc->ctx.cpsr   = 0x50;
-  newProc->ctx.sp     = procTab[number_of_procs - 1].tos;
+  newProc->ctx.sp     = newProc->tos;
 
   // TODO if stuff breaks try switching to plus
   number_of_procs++;
@@ -128,8 +129,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
 
   q = newPriorityQueue();
   for ( int i = 0; i < number_of_procs; i++ ) {
-    int priority = i == 2 ? 2 : 3;
-    // int priority = 2;
+    //int priority = i == 2 ? 2 : 3;
+    int priority = 2;
     //priority = i == 1 ? 3 : priority;
     pqPush(q, &procTab[ i ], priority);
   }
@@ -197,17 +198,17 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
 
     case 0x03 : { // Fork
-      PL011_putc( UART0, 'F', true );
+      //PL011_putc( UART0, 'F', true );
 
-      addProcess ( ctx->pc ); // Add proccess to proc tab
+      addProcess ( executing->ctx.pc ); // Add proccess to proc tab
       pcb_t* child = &procTab[ number_of_procs - 1 ];
-      memcpy ( &child->ctx , ctx , sizeof( ctx_t ));
-      uint32_t stackPointerDistance = executing->tos - ctx->sp;
+      memcpy ( &child->ctx , &executing->ctx , sizeof( ctx_t ));
+      uint32_t stackPointerDistance = executing->tos - executing->ctx.sp;
       child->ctx.sp = child->tos - stackPointerDistance;
-      memcpy ( (uint32_t *) child->ctx.sp , (uint32_t *) ctx->sp ,  procStackSize );
+      memcpy ( (uint32_t*) &child->ctx.sp , (uint32_t*) &executing->ctx.sp ,  stackPointerDistance );
       pqPush (q, child, 2 );
       child->ctx.gpr[0] = 0;
-      ctx->gpr[ 0 ] = child->pid;
+      executing->ctx.gpr[ 0 ] = child->pid;
       //ctx->gpr[ 0 ] = 0;
       //ctx->gpr[0] = copyProcess(executing);
       //ctx->gpr[0] = 0;
@@ -225,8 +226,9 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x05 : { // Execute
-      ctx->pc = ctx->gpr[ 0 ];
-      ctx->sp = executing->tos;
+      //ctx->pc = ctx->gpr[ 0 ];
+      //ctx->sp = executing->tos;
+      procTab[ number_of_procs - 1 ].ctx.pc = ctx->gpr[ 0 ];
       break;
     }
 
