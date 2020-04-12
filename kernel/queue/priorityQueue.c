@@ -1,16 +1,5 @@
-#include "priorityQueue.h"
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "../list/list.h"
-#include "../hilevel.h"
+#include "./priorityQueue.h"
 
-typedef pcb_t* pqdata;
-
-typedef struct priorityQueue {
-  list *l;
-  int size;
-} priorityQueue;
 
 // Create a new queue
 priorityQueue *newPriorityQueue() {
