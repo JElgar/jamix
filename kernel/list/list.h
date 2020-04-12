@@ -1,9 +1,21 @@
 #include <stdbool.h>
+#include <stdlib.h>
 
 // Type for elements in list
 typedef void* data;
 
 typedef struct list list;
+
+typedef struct item {
+	struct item *previous;
+	data value;
+	struct item *next;
+} item;
+
+typedef struct list {
+	item *sentinel;
+	item *current;
+} list;
 
 // Free up the list and all the data in it.
 void freeList(list *l);

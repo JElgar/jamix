@@ -1,23 +1,4 @@
-#include <stdlib.h>
 #include "list.h"
-#include <stdbool.h>
-
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
-typedef void* data;
-
-typedef struct item {
-	struct item *previous;
-	data value;
-	struct item *next;
-} item;
-
-typedef struct list {
-	item *sentinel;
-	item *current;
-} list;
 
 list *newList(data d) {
   list *l = malloc(sizeof(list));
@@ -43,11 +24,11 @@ void last(list *l) {
 }
 
 bool isLast(list *l) {
-  return (l->current->value == (data)NULL);
+  return (l->current->value == NULL);
 }
 
 bool isFirst(list *l) {
-  return (l->current->previous->value == (data)NULL);
+  return (l->current->previous->value == NULL);
 }
 
 bool next(list *l) {
