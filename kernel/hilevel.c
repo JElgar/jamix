@@ -8,7 +8,9 @@
 #include "hilevel.h"
 #include "queue/priorityQueue.h"
 
-pcb_t procTab[ MAX_PROCS ]; pcb_t* executing = NULL; priorityQueue *q; 
+list *procTab;
+//pcb_t procTab[ MAX_PROCS ]; 
+pcb_t* executing = NULL; priorityQueue *q; 
 
 // Stack for porcesses
 extern uint32_t tos_P;
@@ -72,14 +74,15 @@ void schedule( ctx_t* ctx ) {
 }
 
 pcb_t* addProcess ( uint32_t pc ) {
-  memset( &procTab[ number_of_procs ], 0, sizeof( pcb_t ) ); 
-  pcb_t *newProc = &procTab [ number_of_procs ];
+  //memset( &procTab[ number_of_procs ], 0, sizeof( pcb_t ) ); 
+  pcb_t *newProc = malloc(sizeof(pcb_t));
   newProc->status     = STATUS_READY;
   newProc->pid        = number_of_procs;
   newProc->tos        = ( uint32_t )(&tos_P) - number_of_procs*procStackSize;
   newProc->ctx.pc     = pc;
   newProc->ctx.cpsr   = 0x50;
   newProc->ctx.sp     = newProc->tos;
+  insertNext(procTab, newProc);
 
   number_of_procs++;
   return newProc;
@@ -104,9 +107,16 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   addProcess( ( uint32_t ) ( &main_console ) );
   
   q = newPriorityQueue();
-  for ( int i = 0; i < number_of_procs; i++ ) {
+  //for ( int i = 0; i < number_of_procs; i++ ) {
+  //  int priority = 2;
+  //  pqPush(q, &procTab[ i ], priority);
+  //}
+
+  first(procTab);
+  while (!isLast(procTab)) {
     int priority = 2;
-    pqPush(q, &procTab[ i ], priority);
+    pqPush(q, (struct pcb_t*) getNext(procTab), priority);
+    next(procTab);
   }
 
   /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
@@ -207,13 +217,22 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       switch (sig) {
         case 0x0: //SIG_TERM 
         case 0x1: //SIG_QUIT
-          for (int i = 0; i < number_of_procs; i++) {
-            if (procTab[i].pid == pid) {
-              procTab[i].status = STATUS_TERMINATED; 
+          //for (int i = 0; i < number_of_procs; i++) {
+          //  if (procTab[i].pid == pid) {
+          //    procTab[i].status = STATUS_TERMINATED; 
+          //    deleteItem(q, pid);
+          //    break;
+          //  }
+          //}
+          first(procTab);
+          while (!isLast(procTab)) {
+            pcb_t* process = (struct pcb_t*) getNext(procTab);
+            if (process->pid == pid) {
+              deleteNext(procTab);
               deleteItem(q, pid);
-              break;
             }
           }
+
           break;
       }
       break;
