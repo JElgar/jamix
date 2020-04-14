@@ -186,7 +186,6 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
     case 0x03 : { // Fork
       //PL011_putc( UART0, 'F', true );
-
       pcb_t* child = addProcess ( ctx->pc ); // Add proccess to proc tab
       memcpy ( &child->ctx, ctx , sizeof( ctx_t ));
       uint32_t stackPointerDistance = executing->tos - ctx->sp;
@@ -197,13 +196,19 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       pqPush (q, child, 2 );
       break;
     } // SVC when process finishes execution
-    case 0x04 : { // 0x04 => Set executing process to TERMINATED
-     
-      // TODO
-      // Delete from proc tab
-      // Execute = null
+    case 0x04 : { // 0x04 => Exit executing process
       PL011_putc( UART0, 'F', true );
-      executing->status = STATUS_TERMINATED;
+
+      first(procTab);
+      while (!isLast(procTab)) {
+        pcb_t* process = (struct pcb_t*) getNext(procTab);
+        if (process == executing) {
+          deleteNext(procTab);
+          break;
+        }
+        next(procTab);
+      }
+      executing = NULL;
       schedule ( ctx );
 
       break;
@@ -219,13 +224,6 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       switch (sig) {
         case 0x0: //SIG_TERM 
         case 0x1: //SIG_QUIT
-          //for (int i = 0; i < number_of_procs; i++) {
-          //  if (procTab[i].pid == pid) {
-          //    procTab[i].status = STATUS_TERMINATED; 
-          //    deleteItem(q, pid);
-          //    break;
-          //  }
-          //}
           first(procTab);
           while (!isLast(procTab)) {
             pcb_t* process = (struct pcb_t*) getNext(procTab);
