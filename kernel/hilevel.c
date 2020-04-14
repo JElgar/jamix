@@ -89,6 +89,7 @@ pcb_t* addProcess ( uint32_t pc ) {
 }
 
 void hilevel_handler_rst(ctx_t* ctx ) {
+  procTab =  newList();
  
   /* Set up timer */
   TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
@@ -115,6 +116,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   first(procTab);
   while (!isLast(procTab)) {
     int priority = 2;
+    //pqPush(q, (struct pcb_t*) getNext(procTab), priority);
     pqPush(q, (struct pcb_t*) getNext(procTab), priority);
     next(procTab);
   }
@@ -228,11 +230,12 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
           while (!isLast(procTab)) {
             pcb_t* process = (struct pcb_t*) getNext(procTab);
             if (process->pid == pid) {
-              deleteNext(procTab);
               deleteItem(q, pid);
+              deleteNext(procTab);
+              break;
             }
+            next(procTab);
           }
-
           break;
       }
       break;
