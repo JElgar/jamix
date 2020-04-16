@@ -1,3 +1,6 @@
+#ifndef __PRIORITYQUEUE_H
+#define __PRIORITYQUEUE_H
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,3 +37,5 @@ void deleteItem(priorityQueue *pq, uint32_t pid);
 
 // Free queue
 void freePriorityQueue(priorityQueue *pq);
+
+#endif

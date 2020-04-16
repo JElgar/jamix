@@ -91,9 +91,9 @@ extern void sem_post(uint32_t* s);
 extern void sem_wait(uint32_t* s);
 
 // Returns int, which is id of the pipe
-extern int createPipe ();
-extern void destroyPipe (int id);
-extern void sendToPipe(int id, char);
+extern int createPipe ( int size );
+extern void destroyPipe ( int id );
+extern void sendToPipe(int id, char c);
 extern char receiveFromPipe(int id);
 
 

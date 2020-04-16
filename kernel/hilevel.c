@@ -6,11 +6,13 @@
  */
 
 #include "hilevel.h"
-#include "queue/priorityQueue.h"
 
 list *procTab;
 //pcb_t procTab[ MAX_PROCS ]; 
 pcb_t* executing = NULL; priorityQueue *q; 
+
+// Buffers for pipes
+buffer buffers[MAX_PROCS];
 
 // Stack for porcesses
 extern uint32_t tos_P;
@@ -247,6 +249,39 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x09 : { // SYS_SEM_DESTROY
       uint32_t* semaphore = (uint32_t*) ctx->gpr[0];
       free(semaphore);
+      break;
+    }
+    
+    case 0x0A : { // SYS_PIPE_CREATE
+      buffer b;
+      for (int i = 0; i < MAX_PROCS; i++) {
+        if (buffers[i].inUse == false) {
+          b = buffers[i];
+          b.inUse = true;
+          b.length = ctx->gpr[0];
+          b.data = newQueue();
+          ctx->gpr[0] = i; // Return index of buffer
+          break;
+        }
+      }
+      break;
+    }
+    case 0x0B : { // SYS_PIPE_DESTROY
+      buffer b = buffers[ctx->gpr[0]];
+      freeQueue(b.data);
+      b.inUse = false;
+      break;
+    }
+    case 0x0C : { // SYS_PIPE_SEND
+      char bId = ctx->gpr[0];
+      char d   = ctx->gpr[1];
+      push( buffers[bId].data, (qdata) d );
+      break;
+    }
+    case 0x0D : { // SYS_PIPE_RECEIVE
+      char bId = ctx->gpr[0];
+      char d = (char) pop( buffers[bId].data );
+      ctx->gpr[0] = d;
       break;
     }
 

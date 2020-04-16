@@ -52,14 +52,14 @@ typedef struct {
   status_t status; // current status
   uint32_t    tos; // address of Top of Stack (ToS)
      ctx_t    ctx; // execution context
-} pcb_t; 
-
-#include "./queue/priorityQueue.h"
+} pcb_t;
 
 typedef struct {
   bool inUse;      // Says if the buffer is inuse
   int length;      // Maximum size of buffer
-  queue *data;      // Pointer to start of data array
+  char* data;      // Pointer to start of data array
+  int writeIndex;
+  int readIndex;
 } buffer;
 
 #endif

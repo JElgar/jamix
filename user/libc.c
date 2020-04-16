@@ -168,12 +168,42 @@ void destroySemaphore ( uint32_t* x ) {
               : "r0" );
 }
 
-//int createPipe () {
-//  asm volatile( "mov r0, %1 \n" // put x in r0
-//                "svc %0     \n" // make system call SYS_SEM_CREATE
-//              : 
-//              : "I" (SYS_SEM_DESTROY)
-//              : "r0" );
-//  
-//}
-//
+int createPipe ( int size ) {
+  int pipeId;
+  asm volatile ( "mov r0, %2  \n"
+                 "svc %1      \n" // make system call 
+                 "mov %0, r0  \n"
+              : "=r" (pipeId) 
+              : "I" (SYS_PIPE_CREATE), "r" (size)
+              : "r0" );
+  return pipeId;
+}
+
+void destoryPipe (int id) {
+  asm volatile ( "mov r0, %1 \n" 
+                 "svc %0     \n" // make system call 
+              : 
+              : "I" (SYS_PIPE_DESTROY), "r" (id)
+              : "r0" );
+}
+
+void sendToPipe( int id, char c ) {
+  asm volatile ( "mov r0, %1 \n" 
+                 "mov r1, %2 \n" 
+                 "svc %0     \n" // make system call 
+              : 
+              : "I" (SYS_PIPE_SEND), "r" (id), "r" (c)
+              : "r0", "r1" );
+}
+
+char receiveFromPipe (int id) {
+  char value;
+  asm volatile ( "mov r0, %2 \n" 
+                 "svc %1     \n" // make system call 
+                 "mov %0, r0 \n"
+              : "=r" (value) 
+              : "I" (SYS_PIPE_RECEIVE), "r" (id)
+              : "r0" );
+  return value;
+}
+

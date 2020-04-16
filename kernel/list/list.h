@@ -1,5 +1,9 @@
-#include <stdbool.h>
+#ifndef __QUEUE_H
+#define __QUEUE_H
+
 #include <stdlib.h>
+#include <stdbool.h>
+
 
 // Type for elements in list
 typedef void* data;
@@ -54,3 +58,5 @@ bool deletePrevious(list *l);
 
 // Empty list node for error handling (basically void)
 list *newList();
+
+#endif
