@@ -22,23 +22,23 @@ int number_of_procs = 0;
 uint32_t procStackSize = 0x1000;
 
 void dispatch( ctx_t* ctx, pcb_t* next ) {
-  char prev_pid = '?', next_pid = '?';
+  //char prev_pid = '?', next_pid = '?';
 
   if( NULL != executing ) {
     memcpy( &executing->ctx, ctx, sizeof( ctx_t ) ); // preserve execution context of P_{prev}
-    prev_pid = '0' + executing->pid;
+  //   prev_pid = '0' + executing->pid;
   }
   if( NULL != next ) {
     memcpy( ctx, &next->ctx, sizeof( ctx_t ) ); // restore  execution context of P_{next}
-    next_pid = '0' + next->pid;
+  //  next_pid = '0' + next->pid;
   }
 
-    PL011_putc( UART0, '[',      true );
-    PL011_putc( UART0, prev_pid, true );
-    PL011_putc( UART0, '-',      true );
-    PL011_putc( UART0, '>',      true );
-    PL011_putc( UART0, next_pid, true );
-    PL011_putc( UART0, ']',      true );
+    //PL011_putc( UART0, '[',      true );
+    //PL011_putc( UART0, prev_pid, true );
+    //PL011_putc( UART0, '-',      true );
+    //PL011_putc( UART0, '>',      true );
+    //PL011_putc( UART0, next_pid, true );
+    //PL011_putc( UART0, ']',      true );
 
     executing = next;                           // update   executing process to P_{next}
 
@@ -117,7 +117,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   while (!isLast(procTab)) {
     int priority = 2;
     //pqPush(q, (struct pcb_t*) getNext(procTab), priority);
-    pqPush(q, (struct pcb_t*) getNext(procTab), priority);
+    pqPush(q, (pcb_t*) getNext(procTab), priority);
     next(procTab);
   }
 
@@ -201,7 +201,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
       first(procTab);
       while (!isLast(procTab)) {
-        pcb_t* process = (struct pcb_t*) getNext(procTab);
+        pcb_t* process = (pcb_t*) getNext(procTab);
         if (process == executing) {
           deleteNext(procTab);
           break;
@@ -226,7 +226,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         case 0x1: //SIG_QUIT
           first(procTab);
           while (!isLast(procTab)) {
-            pcb_t* process = (struct pcb_t*) getNext(procTab);
+            pcb_t* process = (pcb_t*) getNext(procTab);
             if (process->pid == pid) {
               deleteItem(q, pid);
               deleteNext(procTab);
@@ -236,6 +236,17 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
           }
           break;
       }
+      break;
+    }
+    case 0x08 : { // SYS_SEM_CREATE
+      uint32_t* semaphore = malloc(sizeof(uint32_t));
+      *semaphore = ctx->gpr[0];
+      ctx->gpr[0] = (uint32_t) semaphore;
+      break;
+    }
+    case 0x09 : { // SYS_SEM_DESTROY
+      uint32_t* semaphore = (uint32_t*) ctx->gpr[0];
+      free(semaphore);
       break;
     }
 

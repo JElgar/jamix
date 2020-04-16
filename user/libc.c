@@ -148,3 +148,32 @@ void nice( int pid, int x ) {
 
   return;
 }
+
+uint32_t* createSemaphore ( int x ) {
+  uint32_t* semaphore;
+  asm volatile( "mov r0, %2 \n" // put x in r0
+                "svc %1     \n" // make system call SYS_SEM_CREATE
+                "mov %0, r0 \n" // put return value in semaphore
+              : "=r" (semaphore) // This is the 0th register defined therefore r0
+              : "I" (SYS_SEM_CREATE), "r" (x) 
+              : "r0" );
+  return semaphore;
+}
+
+void destroySemaphore ( uint32_t* x ) {
+  asm volatile( "mov r0, %1 \n" // put x in r0
+                "svc %0     \n" // make system call SYS_SEM_CREATE
+              : 
+              : "I" (SYS_SEM_DESTROY), "r" (x) 
+              : "r0" );
+}
+
+//int createPipe () {
+//  asm volatile( "mov r0, %1 \n" // put x in r0
+//                "svc %0     \n" // make system call SYS_SEM_CREATE
+//              : 
+//              : "I" (SYS_SEM_DESTROY)
+//              : "r0" );
+//  
+//}
+//

@@ -12,10 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Define a type that that captures a Process IDentifier (PID).
-
-typedef int pid_t;
-
+// Define a type that that captures a Process IDentifier (PID).  typedef int pid_t; 
 /* The definitions below capture symbolic constants within these classes:
  *
  * 1. system call identifiers (i.e., the constant used by a system call
@@ -39,6 +36,16 @@ typedef int pid_t;
 #define SYS_KILL      ( 0x06 )
 #define SYS_NICE      ( 0x07 )
 
+// Semaphore nonsense
+#define SYS_SEM_CREATE    ( 0x08 )
+#define SYS_SEM_DESTROY   ( 0x09 )
+
+// Pipes
+#define SYS_PIPE_CREATE   ( 0x0A )
+#define SYS_PIPE_DESTROY  ( 0x0B )
+#define SYS_PIPE_SEND     ( 0x0C )
+#define SYS_PIPE_RECEIVE  ( 0x0D )
+
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
 
@@ -48,6 +55,8 @@ typedef int pid_t;
 #define  STDIN_FILENO ( 0 )
 #define STDOUT_FILENO ( 1 )
 #define STDERR_FILENO ( 2 )
+
+typedef int pid_t;
 
 // convert ASCII string x into integer r
 extern int  atoi( char* x        );
@@ -73,5 +82,19 @@ extern void exec( const void* x );
 extern int  kill( pid_t pid, int x );
 // for process identified by pid, set  priority to x
 extern void nice( pid_t pid, int x );
+
+// Create and delete semaphore. 
+extern uint32_t* createSemaphore( int x );
+extern void destroySemaphore( uint32_t* s );
+
+extern void sem_post(uint32_t* s);
+extern void sem_wait(uint32_t* s);
+
+// Returns int, which is id of the pipe
+extern int createPipe ();
+extern void destroyPipe (int id);
+extern void sendToPipe(int id, char);
+extern char receiveFromPipe(int id);
+
 
 #endif

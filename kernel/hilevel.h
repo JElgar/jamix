@@ -27,7 +27,7 @@
 #include "SP804.h"
 
 
-#define MAX_PROCS 6
+#define MAX_PROCS 20
 
 typedef int pid_t;
 
