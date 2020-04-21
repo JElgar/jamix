@@ -17,6 +17,7 @@
 #include "PL011.h"
 
 #include "libc.h"
+#include "../device/disk.h"
 
 #define MAX_CMD_CHARS ( 1024 )
 #define MAX_CMD_ARGS  (    2 )

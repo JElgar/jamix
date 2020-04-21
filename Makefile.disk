@@ -13,12 +13,14 @@
  DISK_BLOCK_LEN   =    16
 
 # part 3: targets
-
  create-disk :
 	@dd of=${DISK_FILE} if=/dev/zero count=${DISK_BLOCK_NUM} bs=${DISK_BLOCK_LEN}
 
 inspect-disk :
 	@hexdump -C ${DISK_FILE}
+
+connect-disk :
+	@nc -l ${DISK_HOST} ${DISK_PORT}
 
  launch-disk :
 	@python device/disk.py --host=${DISK_HOST} --port=${DISK_PORT} --file=${DISK_FILE} --block-num=${DISK_BLOCK_NUM} --block-len=${DISK_BLOCK_LEN}

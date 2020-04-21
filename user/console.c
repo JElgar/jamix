@@ -120,6 +120,20 @@ void main_console() {
     else if( 0 == strcmp( cmd_argv[ 0 ], "terminate" ) ) {
       kill( atoi( cmd_argv[ 1 ] ), SIG_TERM );
     } 
+    else if( 0 == strcmp( cmd_argv[ 0 ], "wc" ) ) {
+      int diskBlock = disk_get_block_num();
+      char str[10];
+      itoa(str, diskBlock);
+      puts(str, 10);
+      puts("\n",1);
+    }
+    else if( 0 == strcmp( cmd_argv[ 0 ], "cat" ) ) {
+      int diskBlockLen = disk_get_block_len();
+      char str[10];
+      itoa(str, diskBlockLen);
+      puts(str, 10);
+      puts("\n",1);
+    }
     else {
       puts( "unknown command\n", 16 );
     }

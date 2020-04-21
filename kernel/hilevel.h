@@ -27,6 +27,7 @@
 #include "SP804.h"
 
 #include "./queue/queue.h"
+#include "../device/disk.h"
 
 #define MAX_PROCS 20
 
