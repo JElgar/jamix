@@ -35,6 +35,7 @@ void puts( char* x, int n ) {
 extern void main_P3(); 
 extern void main_P4(); 
 extern void main_P5(); 
+extern void main_P6(); 
 extern void main_philling(); 
 
 void* load( char* x ) {
@@ -46,6 +47,9 @@ void* load( char* x ) {
   }
   else if( 0 == strcmp( x, "P5" ) ) {
     return &main_P5;
+  }
+  else if( 0 == strcmp( x, "P6" ) ) {
+    return &main_P6;
   }
   else if( 0 == strcmp( x, "Phil" ) ) {
     return &main_philling;
@@ -92,7 +96,6 @@ void main_console() {
     char cmd[ MAX_CMD_CHARS ];
 
     // step 1: write command prompt, then read command.
-
     puts( "console$ ", 9 ); gets( cmd, MAX_CMD_CHARS );
 
     // step 2: tokenize command.
@@ -120,20 +123,44 @@ void main_console() {
     else if( 0 == strcmp( cmd_argv[ 0 ], "terminate" ) ) {
       kill( atoi( cmd_argv[ 1 ] ), SIG_TERM );
     } 
-    else if( 0 == strcmp( cmd_argv[ 0 ], "wc" ) ) {
-      int diskBlock = disk_get_block_num();
-      char str[10];
-      itoa(str, diskBlock);
-      puts(str, 10);
-      puts("\n",1);
-    }
-    else if( 0 == strcmp( cmd_argv[ 0 ], "cat" ) ) {
-      int diskBlockLen = disk_get_block_len();
-      char str[10];
-      itoa(str, diskBlockLen);
-      puts(str, 10);
-      puts("\n",1);
-    }
+    //else if( 0 == strcmp( cmd_argv[ 0 ], "bn" ) ) {
+    //  int diskBlock = disk_get_block_num();
+    //  char *str;
+    //  itoa(str, diskBlock);
+    //  puts(str, 10);
+    //  puts("\n",1);
+    //}
+    //else if( 0 == strcmp( cmd_argv[ 0 ], "bl" ) ) {
+    //  int diskBlockLen = disk_get_block_len();
+    //  char *str;
+    //  itoa(str, diskBlockLen);
+    //  puts(str, 10);
+    //  puts("\n",1);
+    //}
+    //else if( 0 == strcmp( cmd_argv[ 0 ], "cat" ) ) {
+    //  int addr = atoi(cmd_argv[ 1 ]);
+    //  int x[16];
+    //  //uint8_t *x;
+    //  int a = disk_rd(addr, x, 16);
+    //  char *astr;
+    //  itoa(astr, 1);
+    //  puts(astr, 1);
+    //  puts("\n",1);
+    //  char s[16];
+    //  itoa(s, x);
+    //  puts(s, 16);
+    //  puts("\n",1);
+    //}
+    //else if( 0 == strcmp( cmd_argv[ 0 ], "wc" ) ) {
+    //   
+    //  int x[16];
+    //  //uint8_t *x;
+    //  int a = disk_rd(8961, x, 16);
+    //  char s[16];
+    //  itoa(s, x);
+    //  puts(s, 16);
+    //  puts("\n",1);
+    //}
     else {
       puts( "unknown command\n", 16 );
     }

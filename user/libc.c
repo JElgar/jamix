@@ -207,3 +207,16 @@ char receiveFromPipe (int id) {
   return value;
 }
 
+void lcdColor() {
+  asm volatile ( "svc %0     \n" // make system call 
+              :
+              : "I" (LCD_COLOR)
+              : );
+}
+
+void lcdWhite() {
+  asm volatile ( "svc %0     \n" // make system call 
+              :
+              : "I" (LCD_WHITE)
+              : );
+}

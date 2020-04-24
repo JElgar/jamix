@@ -26,6 +26,12 @@
 #include "PL011.h"
 #include "SP804.h"
 
+// LCD Imports
+#include "PL050.h"
+#include "PL111.h"
+#include   "SYS.h"
+
+
 #include "./queue/queue.h"
 #include "../device/disk.h"
 

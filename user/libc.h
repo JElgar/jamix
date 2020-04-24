@@ -46,6 +46,11 @@
 #define SYS_PIPE_SEND     ( 0x0C )
 #define SYS_PIPE_RECEIVE  ( 0x0D )
 
+// LCD
+#define LCD_COLOR  ( 0x0E )
+#define LCD_WHITE  ( 0x0F )
+
+
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
 
@@ -96,5 +101,7 @@ extern void destroyPipe ( int id );
 extern void sendToPipe(int id, char c);
 extern char receiveFromPipe(int id);
 
+extern void lcdColor();
+extern void lcdWhite();
 
 #endif
