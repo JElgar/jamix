@@ -121,14 +121,7 @@ void exec( const void* x ) {
               : "I" (SYS_EXEC), "r" (x)
               : "r0" );
 
-  return;
-}
-
-int  kill( int pid, int x ) {
-  int r;
-
-  asm volatile( "mov r0, %2 \n" // assign r0 =  pid
-                "mov r1, %3 \n" // assign r1 =    x
+  return; } int  kill( int pid, int x ) { int r; asm volatile( "mov r0, %2 \n" // assign r0 =  pid "mov r1, %3 \n" // assign r1 =    x
                 "svc %1     \n" // make system call SYS_KILL
                 "mov %0, r0 \n" // assign r0 =    r
               : "=r" (r) 
@@ -207,16 +200,26 @@ char receiveFromPipe (int id) {
   return value;
 }
 
-void lcdColor() {
-  asm volatile ( "svc %0     \n" // make system call 
-              :
-              : "I" (LCD_COLOR)
-              : );
-}
+//void lcdColor() {
+//  asm volatile ( "svc %0     \n" // make system call 
+//              :
+//              : "I" (LCD_COLOR)
+//              : );
+//}
+//
+//void lcdWhite() {
+//  asm volatile ( "svc %0     \n" // make system call 
+//              :
+//              : "I" (LCD_WHITE)
+//              : );
+//}
 
-void lcdWhite() {
-  asm volatile ( "svc %0     \n" // make system call 
-              :
-              : "I" (LCD_WHITE)
+uint16_t* lcdGetFb() {
+  uint16_t* fb;
+  asm volatile ( "svc %1     \n" // make system call 
+                 "mov r0, %0 \n" 
+              : "=r" (fb)
+              : "I" (LCD_GET_FB)
               : );
+  return fb;
 }

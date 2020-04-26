@@ -18,6 +18,10 @@ buffer buffers[MAX_PROCS];
 extern uint32_t tos_P;
 extern void main_console();
 
+// cusor vars
+uint32_t mouse_pos_x = 400;
+uint32_t mouse_pos_y = 300;
+
 int last_priority = 0;
 int number_of_procs = 0;
 
@@ -25,6 +29,9 @@ uint32_t procStackSize = 0x1000;
 
 // Frame buffer
 uint16_t fb[ 600 ][ 800 ];
+uint16_t fb_buffer_1[ 600 ][ 800 ];
+uint16_t fb_buffer_2[ 600 ][ 800 ];
+int current_buffer = 1;
 
 void dispatch( ctx_t* ctx, pcb_t* next ) {
   //char prev_pid = '?', next_pid = '?';
@@ -97,8 +104,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab =  newList();
  
   /* Set up timer */
-  TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
-  //TIMER0->Timer1Load  = 0x00001000; // select period = 2^20 ticks ~= 1 sec
+  //TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
+  TIMER0->Timer1Load  = 0x00001000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl |= 0x00000020; // enable          timer interrupt
@@ -136,13 +143,6 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   PS21->CR           = 0x00000010; // enable PS/2    (Rx) interrupt
   PS21->CR          |= 0x00000004; // enable PS/2 (Tx+Rx)
 
-  //for( int i = 0; i < 600; i++ ) {
-  //  for( int j = 0; j < 800; j++ ) {
-  //    fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
-  //  }
-  //}
-
-
   uint8_t ack;
 
         PL050_putc( PS20, 0xF4 );  // transmit PS/2 enable command
@@ -153,8 +153,15 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   for( int i = 0; i < 600; i++ ) {
     for( int j = 0; j < 800; j++ ) {
       fb[ i ][ j ] = 0x7FFF;
+      fb_buffer_1[ i ][ j ] = 0x7FFF;
+      fb_buffer_2[ i ][ j ] = 0x7FFF;
     }
   }
+  //for( int i = 0; i < 600; i++ ) {
+  //  for( int j = 0; j < 800; j++ ) {
+  //    fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
+  //  }
+  //}
 
   int_enable_irq();
   
@@ -190,16 +197,53 @@ void hilevel_handler_irq( ctx_t* ctx ) {
 
   uint32_t id = GICC0->IAR;
 
-  // Step 4: handle the interrupt, then clear (or reset) the source.
-
+  // Step 4: handle the interrupt, then clear (or reset) the source.  
   if( id == GIC_SOURCE_TIMER0 ) {
     // call the scheduler
     PL011_putc( UART0, 'T', true ); 
     schedule(ctx);
     TIMER0->Timer1IntClr = 0x01;
   }
+  else if( id == GIC_SOURCE_PS20 ) {
+    uint8_t x = PL050_getc( PS20 );
+
+    PL011_putc( UART0, '0',                      true );  
+    PL011_putc( UART0, '<',                      true ); 
+    PL011_putc( UART0, itox( ( x >> 4 ) & 0xF ), true ); 
+    PL011_putc( UART0, itox( ( x >> 0 ) & 0xF ), true ); 
+    PL011_putc( UART0, '>',                      true ); 
+  }
+  else if( id == GIC_SOURCE_PS21 ) {
+
+    uint8_t mouse_state = PL050_getc( PS21 );
+    uint8_t move_x = PL050_getc( PS21 );
+    uint8_t move_y = PL050_getc( PS21 );
+
+    mouse_pos_x += move_x - 255* (mouse_state >> 4 & 0x1);
+    if (mouse_pos_x > 799) mouse_pos_x = 799;
+    else if (mouse_pos_x < 0) mouse_pos_x = 0;
+    mouse_pos_y -= move_y - 255* (mouse_state >> 5 & 0x1);
+    if (mouse_pos_y > 599) mouse_pos_x = 599;
+    else if (mouse_pos_y < 0) mouse_pos_x = 0;
+
+  }
+
+  //for( int i = 0; i < 600; i++ ) {
+  //  for( int j = 0; j < 800; j++ ) {
+  //    fb[ i ][ j ] = fb_wo_mouse[ i ][ j ];
+  //  }
+  //}
+   fb = &fb_next_buffer;
+  
+  for( int i = 0; i < 10; i++ ) {
+    for( int j = 0; j < 10; j++ ) {
+      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
+    }
+  }
+
 
   // Step 5: write the interrupt identifier to signal we're done.
+
 
   GICC0->EOIR = id;
 
@@ -335,20 +379,23 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[0] = d;
       break;
     }
-    case 0x0E : { // LCD_COLOR
-      for( int i = 0; i < 600; i++ ) {
-        for( int j = 0; j < 800; j++ ) {
-          fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
-        }
-      }
-    }
-    case 0x0F : { // LCD_WHITE
-      for( int i = 0; i < 600; i++ ) {
-        for( int j = 0; j < 800; j++ ) {
-          fb[ i ][ j ] = 0x7FFF;
-        }
-      }
-      break;
+    //case 0x0E : { // LCD_COLOR
+    //  for( int i = 0; i < 600; i++ ) {
+    //    for( int j = 0; j < 800; j++ ) {
+    //      fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
+    //    }
+    //  }
+    //}
+    //case 0x0F : { // LCD_WHITE
+    //  for( int i = 0; i < 600; i++ ) {
+    //    for( int j = 0; j < 800; j++ ) {
+    //      fb[ i ][ j ] = 0x7FFF;
+    //    }
+    //  }
+    //  break;
+    //}
+    case 0x0E : { // LCD_CREATE
+      ctx->gpr[0] = (uint32_t)&fb_next_buffer[0][0];
     }
     default   : { // 0x?? => unknown/unsupported
       break;
