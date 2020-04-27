@@ -31,6 +31,7 @@ uint32_t procStackSize = 0x1000;
 uint16_t fb[ 600 ][ 800 ];
 uint16_t fb_buffer_1[ 600 ][ 800 ];
 uint16_t fb_buffer_2[ 600 ][ 800 ];
+uint16_t fb_next_buffer[ 600 ][ 800 ];
 int current_buffer = 1;
 
 void dispatch( ctx_t* ctx, pcb_t* next ) {
@@ -155,6 +156,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
       fb[ i ][ j ] = 0x7FFF;
       fb_buffer_1[ i ][ j ] = 0x7FFF;
       fb_buffer_2[ i ][ j ] = 0x7FFF;
+      fb_next_buffer[ i ][ j ] = 0x7FFF;
     }
   }
   //for( int i = 0; i < 600; i++ ) {
@@ -233,7 +235,16 @@ void hilevel_handler_irq( ctx_t* ctx ) {
   //    fb[ i ][ j ] = fb_wo_mouse[ i ][ j ];
   //  }
   //}
-   fb = &fb_next_buffer;
+  //if (current_buffer = 1) {
+  //  fb = fb_buffer_2;
+  //  current_buffer = 2;
+  //  fb_buffer_1 = fb_next_buffer;
+  //}
+  //if (current_buffer = 2) {
+  //  fb = fb_buffer_1;
+  //  current_buffer = 1;
+  //  fb_buffer_2 = fb_next_buffer;
+  //}
   
   for( int i = 0; i < 10; i++ ) {
     for( int j = 0; j < 10; j++ ) {
