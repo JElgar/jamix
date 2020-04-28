@@ -19,8 +19,8 @@ extern uint32_t tos_P;
 extern void main_console();
 
 // cusor vars
-uint32_t mouse_pos_x = 400;
-uint32_t mouse_pos_y = 300;
+int mouse_pos_x = 400;
+int mouse_pos_y = 300;
 
 int last_priority = 0;
 int number_of_procs = 0;
@@ -29,8 +29,8 @@ uint32_t procStackSize = 0x1000;
 
 // Frame buffer
 uint16_t fb[ 600 ][ 800 ];
-uint16_t fb_buffer_1[ 600 ][ 800 ];
-uint16_t fb_buffer_2[ 600 ][ 800 ];
+uint16_t *fb_buffer_1[ 600 ][ 800 ];
+uint16_t *fb_buffer_2[ 600 ][ 800 ];
 uint16_t fb_next_buffer[ 600 ][ 800 ];
 int current_buffer = 1;
 
@@ -106,7 +106,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
  
   /* Set up timer */
   //TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
-  TIMER0->Timer1Load  = 0x00001000; // select period = 2^20 ticks ~= 1 sec
+  TIMER0->Timer1Load  = 0x00001000; // select period
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl |= 0x00000020; // enable          timer interrupt
@@ -165,8 +165,6 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   //  }
   //}
 
-  int_enable_irq();
-  
   addProcess( ( uint32_t ) ( &main_console ) );
   
   q = newPriorityQueue();
@@ -190,6 +188,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
 
   // dispatch( ctx, NULL, &procTab[ 0 ] );
   schedule ( ctx );
+  
+  int_enable_irq();
 
   return;
 }
@@ -216,41 +216,68 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     PL011_putc( UART0, '>',                      true ); 
   }
   else if( id == GIC_SOURCE_PS21 ) {
-
+    // Undraw previous mouse pointer
+    for( int i = 0; i < 10; i++ ) {
+      for( int j = 0; j < 10; j++ ) {
+        int pos_y = mouse_pos_y + i;
+        if (pos_y > 599) pos_y = 599;
+        else if (pos_y < 0) pos_y = 0;
+        int pos_x = mouse_pos_x + j;
+        if (pos_x > 799) pos_x = 799;
+        else if (pos_x < 0) pos_x = 0;
+        fb[pos_y][pos_x] = fb_next_buffer[pos_y][pos_x];
+      }
+    }
     uint8_t mouse_state = PL050_getc( PS21 );
     uint8_t move_x = PL050_getc( PS21 );
     uint8_t move_y = PL050_getc( PS21 );
 
     mouse_pos_x += move_x - 255* (mouse_state >> 4 & 0x1);
-    if (mouse_pos_x > 799) mouse_pos_x = 799;
-    else if (mouse_pos_x < 0) mouse_pos_x = 0;
+    if (mouse_pos_x < 0) mouse_pos_x = 0;
+    else if (mouse_pos_x > 799) mouse_pos_x = 799;
     mouse_pos_y -= move_y - 255* (mouse_state >> 5 & 0x1);
-    if (mouse_pos_y > 599) mouse_pos_x = 599;
-    else if (mouse_pos_y < 0) mouse_pos_x = 0;
+    if (mouse_pos_y < 0) mouse_pos_y = 0;
+    else if (mouse_pos_y > 599) mouse_pos_y = 599;
+    for( int i = 0; i < 10; i++ ) {
+      for( int j = 0; j < 10; j++ ) {
+        int pos_y = mouse_pos_y + i;
+        if (pos_y > 599) pos_y = 599;
+        else if (pos_y < 0) pos_y = 0;
+        int pos_x = mouse_pos_x + j;
+        if (pos_x > 799) pos_x = 799;
+        else if (pos_x < 0) pos_x = 0;
+        fb[pos_y][pos_x] = 0x0;
+      }
+    }
 
   }
 
   //for( int i = 0; i < 600; i++ ) {
   //  for( int j = 0; j < 800; j++ ) {
-  //    fb[ i ][ j ] = fb_wo_mouse[ i ][ j ];
+  //    fb[ i ][ j ] = fb_next_buffer[ i ][ j ];
   //  }
   //}
-  //if (current_buffer = 1) {
-  //  fb = fb_buffer_2;
+  //if (current_buffer == 1) {
+  //  fb[0][0] = &fb_buffer_2[0][0];
+  //  for( int i = 0; i < 10; i++ ) {
+  //    for( int j = 0; j < 10; j++ ) {
+  //      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
+  //    }
+  //  }
   //  current_buffer = 2;
-  //  fb_buffer_1 = fb_next_buffer;
+  //  fb_buffer_1[0][0] = fb_next_buffer;
   //}
-  //if (current_buffer = 2) {
-  //  fb = fb_buffer_1;
+  //else if (current_buffer == 2) {
+  //  fb[0][0] = &fb_buffer_1[0][0];
+  //  for( int i = 0; i < 10; i++ ) {
+  //    for( int j = 0; j < 10; j++ ) {
+  //      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
+  //    }
+  //  }
   //  current_buffer = 1;
-  //  fb_buffer_2 = fb_next_buffer;
+  //  fb_buffer_2[0][0] = fb_next_buffer;
   //}
   
-  for( int i = 0; i < 10; i++ ) {
-    for( int j = 0; j < 10; j++ ) {
-      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
-    }
-  }
 
 
   // Step 5: write the interrupt identifier to signal we're done.
