@@ -29,9 +29,9 @@ uint32_t procStackSize = 0x1000;
 
 // Frame buffer
 uint16_t fb[ 600 ][ 800 ];
-uint16_t *fb_buffer_1[ 600 ][ 800 ];
-uint16_t *fb_buffer_2[ 600 ][ 800 ];
 uint16_t fb_next_buffer[ 600 ][ 800 ];
+//uint16_t fb2[ 600 ][ 800 ];
+//uint16_t *fb_active[ 600 ][ 800 ];
 int current_buffer = 1;
 
 void dispatch( ctx_t* ctx, pcb_t* next ) {
@@ -124,11 +124,22 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   LCD->LCDTiming2    = 0x071F1800; // per per Table 4.3 of datasheet
 
   LCD->LCDUPBASE     = ( uint32_t )( &fb );
+  //LCD->LCDLPBASE     = ( uint32_t )( &fblp );
 
   LCD->LCDControl    = 0x00000020; // select TFT   display type
   LCD->LCDControl   |= 0x00000008; // select 16BPP display mode
   LCD->LCDControl   |= 0x00000800; // power-on LCD controller
   LCD->LCDControl   |= 0x00000001; // enable   LCD controller
+  //LCD->LCDControl   |= 0x10000000; // enable dual panel
+  
+  // Enable cursor
+  LCD->ClcdCrsrPalette0 = 0x0;
+  LCD->ClcdCrsrPalette1 = 0xFFF;
+  //LCD->ClcdCrsrXY = 0x0A0A;
+  for (int i = 0; i < 64; i++) {
+    LCD->ClcdCrsrImage[i] = 0x0;
+  }
+  LCD->ClcdCrsrCtrl = 0x1;
 
   /* Configure the mechanism for interrupt handling by
    *
@@ -144,10 +155,6 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   PS21->CR           = 0x00000010; // enable PS/2    (Rx) interrupt
   PS21->CR          |= 0x00000004; // enable PS/2 (Tx+Rx)
 
-  // Enable cursor
-  LCD->ClcdCrsrCtrl = 0x1;
-  LCD->ClcdCrsrPalette0 = 0x0;
-  LCD->ClcdCrsrPalette1 = 0xFFF;
 
   uint8_t ack;
 
@@ -159,8 +166,9 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   for( int i = 0; i < 600; i++ ) {
     for( int j = 0; j < 800; j++ ) {
       fb[ i ][ j ] = 0x7FFF;
-      fb_buffer_1[ i ][ j ] = 0x7FFF;
-      fb_buffer_2[ i ][ j ] = 0x7FFF;
+      //fb2[ i ][ j ] = 0x0;
+      //fb_buffer_1[ i ][ j ] = 0x7FFF;
+      //fb_buffer_2[ i ][ j ] = 0x7FFF;
       fb_next_buffer[ i ][ j ] = 0x7FFF;
     }
   }
@@ -254,8 +262,9 @@ void hilevel_handler_irq( ctx_t* ctx ) {
         fb[pos_y][pos_x] = 0x0;
       }
     }
-
   }
+  flip();
+
 
   //for( int i = 0; i < 600; i++ ) {
   //  for( int j = 0; j < 800; j++ ) {
@@ -440,10 +449,28 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x0E : { // LCD_CREATE
       ctx->gpr[0] = (uint32_t)&fb_next_buffer[0][0];
     }
+    case 0x0F : { // LCD_DRAW
+      for( int i = 0; i < 600; i++ ) {
+        for( int j = 0; j < 800; j++ ) {
+          fb[i][j] = fb_next_buffer[i][j];
+        }
+      }
+    }
     default   : { // 0x?? => unknown/unsupported
       break;
     }
   }
 
   return;
+}
+
+void flip() {
+  //if(current_buffer == 1) {
+  //  LCD->LCDUPBASE = (uint32_t) (&fb2);
+  //  current_buffer = 2;
+  //}
+  //else {
+  //  LCD->LCDUPBASE = (uint32_t) (&fb);
+  //  current_buffer = 1;
+  //}
 }

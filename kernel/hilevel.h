@@ -69,4 +69,5 @@ typedef struct {
   queue *data;      // Pointer to start of data array
 } buffer;
 
+void flip();
 #endif

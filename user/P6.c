@@ -40,5 +40,7 @@ void main_P6() {
       fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
     }
   }
+  square(100, 200, 100, fb);
+  draw();
   exit( EXIT_SUCCESS );
 }

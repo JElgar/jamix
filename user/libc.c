@@ -223,3 +223,10 @@ uint16_t* lcdGetFb() {
               : );
   return fb;
 }
+
+void draw() {
+  asm volatile ( "svc %0     \n" // make system call 
+              :
+              : "I" (LCD_DRAW)
+              : );
+}

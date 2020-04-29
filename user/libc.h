@@ -48,6 +48,7 @@
 
 // LCD
 #define LCD_GET_FB  ( 0x0E )
+#define LCD_DRAW    ( 0x0F )
 //#define LCD_COLOR  ( 0x0E )
 //#define LCD_WHITE  ( 0x0F )
 
@@ -105,5 +106,6 @@ extern char receiveFromPipe(int id);
 //extern void lcdColor();
 //extern void lcdWhite();
 extern uint16_t* lcdGetFb();
+extern void draw();
 
 #endif

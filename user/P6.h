@@ -13,5 +13,6 @@
 #include <stdint.h>
 
 #include "libc.h"
+#include "graphics.h"
 
 #endif
