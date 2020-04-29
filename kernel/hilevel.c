@@ -144,6 +144,11 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   PS21->CR           = 0x00000010; // enable PS/2    (Rx) interrupt
   PS21->CR          |= 0x00000004; // enable PS/2 (Tx+Rx)
 
+  // Enable cursor
+  LCD->ClcdCrsrCtrl = 0x1;
+  LCD->ClcdCrsrPalette0 = 0x0;
+  LCD->ClcdCrsrPalette1 = 0xFFF;
+
   uint8_t ack;
 
         PL050_putc( PS20, 0xF4 );  // transmit PS/2 enable command
