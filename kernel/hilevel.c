@@ -34,6 +34,7 @@ uint16_t fb_next_buffer[ 600 ][ 800 ];
 //uint16_t *fb_active[ 600 ][ 800 ];
 int current_buffer = 1;
 
+// Cursor
 void dispatch( ctx_t* ctx, pcb_t* next ) {
   //char prev_pid = '?', next_pid = '?';
 
@@ -230,8 +231,8 @@ void hilevel_handler_irq( ctx_t* ctx ) {
   }
   else if( id == GIC_SOURCE_PS21 ) {
     // Undraw previous mouse pointer
-    for( int i = 0; i < 10; i++ ) {
-      for( int j = 0; j < 10; j++ ) {
+    for( int i = 0; i < 20; i++ ) {
+      for( int j = 0; j < 20; j++ ) {
         int pos_y = mouse_pos_y + i;
         if (pos_y > 599) pos_y = 599;
         else if (pos_y < 0) pos_y = 0;
@@ -251,17 +252,8 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     mouse_pos_y -= move_y - 255* (mouse_state >> 5 & 0x1);
     if (mouse_pos_y < 0) mouse_pos_y = 0;
     else if (mouse_pos_y > 599) mouse_pos_y = 599;
-    for( int i = 0; i < 10; i++ ) {
-      for( int j = 0; j < 10; j++ ) {
-        int pos_y = mouse_pos_y + i;
-        if (pos_y > 599) pos_y = 599;
-        else if (pos_y < 0) pos_y = 0;
-        int pos_x = mouse_pos_x + j;
-        if (pos_x > 799) pos_x = 799;
-        else if (pos_x < 0) pos_x = 0;
-        fb[pos_y][pos_x] = 0x0;
-      }
-    }
+    
+    drawMousePointer();
   }
   flip();
 
@@ -473,4 +465,63 @@ void flip() {
   //  LCD->LCDUPBASE = (uint32_t) (&fb);
   //  current_buffer = 1;
   //}
+}
+
+void drawPixel(int y, int x) {
+  if (x < 800 && y < 600) fb[y][x] = 0x0;
+}
+
+void drawMousePointer() {
+    //for( int i = 0; i < 10; i++ ) {
+    //  for( int j = 0; j < 10; j++ ) {
+    //    int pos_y = mouse_pos_y + i;
+    //    if (pos_y > 599) pos_y = 599;
+    //    else if (pos_y < 0) pos_y = 0;
+    //    int pos_x = mouse_pos_x + j;
+    //    if (pos_x > 799) pos_x = 799;
+    //    else if (pos_x < 0) pos_x = 0;
+    //    fb[pos_y][pos_x] = 0x0;
+    //  }
+    //}
+    // Draw Left line
+    for ( int i = 0; i < 17; i++ ) {
+      drawPixel(mouse_pos_y+i, mouse_pos_x);
+    }
+    // Right diagonal line
+    for ( int i = 0; i < 12; i++ ) {
+      drawPixel(mouse_pos_y+i, mouse_pos_x+i);
+    }
+    // Bottom up diagonal
+    for ( int i = 0; i < 4; i++ ) {
+      drawPixel(16+mouse_pos_y-i,1+mouse_pos_x+i);
+    }
+    // Bottom up straight
+    for ( int i = 0; i < 5; i++ ) {
+      drawPixel(12+mouse_pos_y,11+mouse_pos_x-i);
+    }
+    // Tail
+    // Tail Left
+    drawPixel(15+mouse_pos_y, 5+mouse_pos_x);
+    drawPixel(16+mouse_pos_y, 5+mouse_pos_x);
+    drawPixel(17+mouse_pos_y, 6+mouse_pos_x);
+    drawPixel(18+mouse_pos_y, 6+mouse_pos_x);
+    // Tail Right
+    drawPixel(15+mouse_pos_y, 5+mouse_pos_x+3);
+    drawPixel(16+mouse_pos_y, 5+mouse_pos_x+3);
+    drawPixel(17+mouse_pos_y, 6+mouse_pos_x+3);
+    drawPixel(18+mouse_pos_y, 6+mouse_pos_x+3);
+    // Bottom
+    drawPixel(19+mouse_pos_y, 7+mouse_pos_x);
+    drawPixel(19+mouse_pos_y, 8+mouse_pos_x);
+
+    //for ( int i = 0; i < 32; i++ ){
+    //  int pos_y = mouse_pos_y + i;
+    //  if (pos_y > 599) pos_y = 599;
+    //  else if (pos_y < 0) pos_y = 0;
+    //  int pos_x = mouse_pos_x;
+    //  if (pos_x > 799) pos_x = 799;
+    //  else if (pos_x < 0) pos_x = 0;
+    //  fb[pos_y+i][pos_x] = cursor[i];
+    //}
+  
 }

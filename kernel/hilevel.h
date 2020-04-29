@@ -70,4 +70,5 @@ typedef struct {
 } buffer;
 
 void flip();
+void drawMousePointer();
 #endif
