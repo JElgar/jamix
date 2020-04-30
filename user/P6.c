@@ -41,6 +41,9 @@ void main_P6() {
     }
   }
   square(100, 200, 100, fb);
+  put_char('J', 100, 20, fb);
+  put_char('A', 110, 20, fb);
+  put_str("Hello", 110, 30, fb);
   draw();
   exit( EXIT_SUCCESS );
 }

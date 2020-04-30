@@ -448,6 +448,10 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         }
       }
     }
+    case 0x0F : { // LCD_MOUSE_POS
+      ctx->gpr[0] = &mouse_pos_x;
+      ctx->gpr[1] = &mouse_pos_y;
+    }
     default   : { // 0x?? => unknown/unsupported
       break;
     }

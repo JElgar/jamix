@@ -8,5 +8,6 @@
 #include "libc.h"
 
 extern void square( uint32_t x, uint32_t y, uint32_t size, uint16_t (*fb)[800]);
+extern void put_char( int c, uint32_t x, uint32_t y, uint16_t (*fb)[800]);
 
 #endif
