@@ -34,6 +34,10 @@ void main_P6() {
   //lcdGetFb();
   //uint16_t (*fb)[800] = (uint16_t (*)[600][800])lcdGetFb(); 
   uint16_t (*fb)[800] = (uint16_t (*)[800]) lcdGetFb(); 
+  
+  //int *mouse_x_pointer = getMouseX();
+  //int mouse_y = *getMouseY();
+  
   write( STDOUT_FILENO, "c", 1 );
   for( int i = 0; i < 600; i++ ) {
     for( int j = 0; j < 800; j++ ) {
@@ -45,5 +49,17 @@ void main_P6() {
   put_char('A', 110, 20, fb);
   put_str("Hello", 110, 30, fb);
   draw();
+
+  while(1) {
+    write( STDOUT_FILENO, "d", 1 );
+    //if (*mouse_x_pointer > 400) break;
+  }
+  //while(1) {
+  //  if (*mouse_x > 200 && *mouse_x < 400) {
+  //    if (*mouse_y > 200 && *mouse_y < 400) {
+  //      break;
+  //    }
+  //  }
+  //}
   exit( EXIT_SUCCESS );
 }

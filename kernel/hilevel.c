@@ -440,6 +440,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     //}
     case 0x0E : { // LCD_CREATE
       ctx->gpr[0] = (uint32_t)&fb_next_buffer[0][0];
+      break;
     }
     case 0x0F : { // LCD_DRAW
       for( int i = 0; i < 600; i++ ) {
@@ -447,10 +448,15 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
           fb[i][j] = fb_next_buffer[i][j];
         }
       }
+      break;
     }
-    case 0x0F : { // LCD_MOUSE_POS
-      ctx->gpr[0] = &mouse_pos_x;
-      ctx->gpr[1] = &mouse_pos_y;
+    case 0x10 : { // LCD_MOUSE_X
+      ctx->gpr[0] = (uint32_t)&mouse_pos_x;
+      break;
+    }
+    case 0x11 : { // LCD_MOUSE_Y
+      ctx->gpr[0] = (uint32_t)&mouse_pos_y;
+      break;
     }
     default   : { // 0x?? => unknown/unsupported
       break;

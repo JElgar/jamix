@@ -47,11 +47,11 @@
 #define SYS_PIPE_RECEIVE  ( 0x0D )
 
 // LCD
-#define LCD_GET_FB  ( 0x0E )
-#define LCD_DRAW    ( 0x0F )
-//#define LCD_COLOR  ( 0x0E )
-//#define LCD_WHITE  ( 0x0F )
-
+#define LCD_GET_FB    ( 0x0E )
+#define LCD_DRAW      ( 0x0F )
+// Mouse
+#define LCD_MOUSE_X   ( 0x10 )
+#define LCD_MOUSE_Y   ( 0x11 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -62,6 +62,8 @@
 #define  STDIN_FILENO ( 0 )
 #define STDOUT_FILENO ( 1 )
 #define STDERR_FILENO ( 2 )
+
+enum mouse{mousex, mousey};
 
 typedef int pid_t;
 
@@ -103,9 +105,9 @@ extern void destroyPipe ( int id );
 extern void sendToPipe(int id, char c);
 extern char receiveFromPipe(int id);
 
-//extern void lcdColor();
-//extern void lcdWhite();
 extern uint16_t* lcdGetFb();
 extern void draw();
+extern int* getMouseX();
+extern int* getMouseY();
 
 #endif

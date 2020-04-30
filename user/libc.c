@@ -230,3 +230,23 @@ void draw() {
               : "I" (LCD_DRAW)
               : );
 }
+
+int* getMouseX() {
+  int* mousex;
+  asm volatile ( "svc %1     \n" // make system call 
+                 "mov r0, %0 \n" 
+              : "=r" (mousex)
+              : "I" (LCD_MOUSE_X)
+              : );
+  return mousex;
+}
+
+int* getMouseY() {
+  int* mousey;
+  asm volatile ( "svc %1     \n" // make system call 
+                 "mov r0, %0 \n" 
+              : "=r" (mousey)
+              : "I" (LCD_MOUSE_Y)
+              : );
+  return mousey;
+}
