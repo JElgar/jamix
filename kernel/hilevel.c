@@ -68,9 +68,11 @@ void schedule( ctx_t* ctx ) {
     }
     pqitem *next_item = (struct pqitem*) pqPop(q);
     pcb_t *next_p = next_item->data;
+    free(next_item);
     while (next_p->status == STATUS_TERMINATED) {
       next_item = (struct pqitem*) pqPop(q);
       next_p = next_item->data;
+      free(next_item);
     }
     
     // If the last process was NULL or has TERMINATED do not add it to the queue
