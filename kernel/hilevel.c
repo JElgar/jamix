@@ -17,6 +17,7 @@ buffer buffers[MAX_PROCS];
 // Stack for porcesses
 extern uint32_t tos_P;
 extern void main_console();
+extern void main_P6();
 
 // cusor vars
 int mouse_pos_x = 400;
@@ -183,6 +184,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   //}
 
   addProcess( ( uint32_t ) ( &main_console ) );
+  addProcess( ( uint32_t ) ( &main_P6 ) );
   
   q = newPriorityQueue();
   //for ( int i = 0; i < number_of_procs; i++ ) {
@@ -486,8 +488,8 @@ void flip() {
   //}
 }
 
-void drawPixel(int y, int x) {
-  if (x < 800 && y < 600) fb[y][x] = 0x0;
+void drawPixel(int y, int x, uint16_t color) {
+  if (x < 800 && y < 600) fb[y][x] = color;
 }
 
 void drawMousePointer() {
@@ -504,43 +506,58 @@ void drawMousePointer() {
     //}
     // Draw Left line
     for ( int i = 0; i < 17; i++ ) {
-      drawPixel(mouse_pos_y+i, mouse_pos_x);
+      drawPixel(mouse_pos_y+i, mouse_pos_x, 0x0);
     }
     // Right diagonal line
     for ( int i = 0; i < 12; i++ ) {
-      drawPixel(mouse_pos_y+i, mouse_pos_x+i);
+      drawPixel(mouse_pos_y+i, mouse_pos_x+i, 0x0);
+    }
+    // Fill in above section 
+    for ( int i = 0; i < 12; i++ ) {
+      for (int j = i-1; j > 0; j--) {
+        drawPixel(mouse_pos_y+i, mouse_pos_x+j, 0x7FFF);
+      }
     }
     // Bottom up diagonal
     for ( int i = 0; i < 4; i++ ) {
-      drawPixel(16+mouse_pos_y-i,1+mouse_pos_x+i);
+      drawPixel(16+mouse_pos_y-i,1+mouse_pos_x+i,0x0);
     }
-    // Bottom up straight
+    // Fill in above section 
+    for ( int i = 12; i < 16; i++ ) {
+      for (int j = 4-(i-12); j > 0; j--) {
+        drawPixel(mouse_pos_y+i, mouse_pos_x+j, 0x7FFF);
+      }
+    }
+    // Middle straight
     for ( int i = 0; i < 5; i++ ) {
-      drawPixel(12+mouse_pos_y,11+mouse_pos_x-i);
+      drawPixel(12+mouse_pos_y,11+mouse_pos_x-i, 0x0);
     }
     // Tail
     // Tail Left
-    drawPixel(15+mouse_pos_y, 5+mouse_pos_x);
-    drawPixel(16+mouse_pos_y, 5+mouse_pos_x);
-    drawPixel(17+mouse_pos_y, 6+mouse_pos_x);
-    drawPixel(18+mouse_pos_y, 6+mouse_pos_x);
-    // Tail Right
-    drawPixel(15+mouse_pos_y, 5+mouse_pos_x+3);
-    drawPixel(16+mouse_pos_y, 5+mouse_pos_x+3);
-    drawPixel(17+mouse_pos_y, 6+mouse_pos_x+3);
-    drawPixel(18+mouse_pos_y, 6+mouse_pos_x+3);
-    // Bottom
-    drawPixel(19+mouse_pos_y, 7+mouse_pos_x);
-    drawPixel(19+mouse_pos_y, 8+mouse_pos_x);
+    drawPixel(13+mouse_pos_y, 4+mouse_pos_x, 0x0);
+    drawPixel(14+mouse_pos_y, 4+mouse_pos_x, 0x0);
+    drawPixel(15+mouse_pos_y, 5+mouse_pos_x, 0x0);
+    drawPixel(16+mouse_pos_y, 5+mouse_pos_x, 0x0);
+    drawPixel(17+mouse_pos_y, 6+mouse_pos_x, 0x0);
+    drawPixel(18+mouse_pos_y, 6+mouse_pos_x, 0x0);
+    // Fill in above Seciton
+    for ( int i = 0; i < 2; i++ ) {
+      for ( int j = 0; j < 3; j++ ) {
+        drawPixel(11+mouse_pos_y+i, 4+mouse_pos_x+j, 0x7FFF);
+        drawPixel(13+mouse_pos_y+i, 5+mouse_pos_x+j, 0x7FFF);
+        drawPixel(15+mouse_pos_y+i, 6+mouse_pos_x+j, 0x7FFF);
+        drawPixel(17+mouse_pos_y+i, 7+mouse_pos_x+j, 0x7FFF);
+      }
+    }
 
-    //for ( int i = 0; i < 32; i++ ){
-    //  int pos_y = mouse_pos_y + i;
-    //  if (pos_y > 599) pos_y = 599;
-    //  else if (pos_y < 0) pos_y = 0;
-    //  int pos_x = mouse_pos_x;
-    //  if (pos_x > 799) pos_x = 799;
-    //  else if (pos_x < 0) pos_x = 0;
-    //  fb[pos_y+i][pos_x] = cursor[i];
-    //}
-  
+    // Tail Right
+    drawPixel(13+mouse_pos_y, 4+mouse_pos_x+3, 0x0);
+    drawPixel(14+mouse_pos_y, 4+mouse_pos_x+3, 0x0);
+    drawPixel(15+mouse_pos_y, 5+mouse_pos_x+3, 0x0);
+    drawPixel(16+mouse_pos_y, 5+mouse_pos_x+3, 0x0);
+    drawPixel(17+mouse_pos_y, 6+mouse_pos_x+3, 0x0);
+    drawPixel(18+mouse_pos_y, 6+mouse_pos_x+3, 0x0);
+    // Bottom
+    drawPixel(19+mouse_pos_y, 7+mouse_pos_x, 0x0);
+    drawPixel(19+mouse_pos_y, 8+mouse_pos_x, 0x0);
 }
