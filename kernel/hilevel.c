@@ -8,8 +8,8 @@
 #include "hilevel.h"
 
 list *procTab;
-//pcb_t procTab[ MAX_PROCS ]; 
-pcb_t* executing = NULL; priorityQueue *q; 
+pcb_t* executing = NULL; 
+priorityQueue *q; 
 
 // Buffers for pipes
 buffer buffers[MAX_PROCS];
