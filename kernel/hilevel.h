@@ -63,12 +63,12 @@ typedef struct {
 
 #include "./queue/priorityQueue.h"
 
+// Buffer struct for pipes
 typedef struct {
   bool inUse;      // Says if the buffer is inuse
   int length;      // Maximum size of buffer
   queue *data;      // Pointer to start of data array
 } buffer;
 
-void flip();
 void drawMousePointer();
 #endif
