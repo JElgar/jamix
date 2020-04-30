@@ -50,8 +50,9 @@
 #define LCD_GET_FB    ( 0x0E )
 #define LCD_DRAW      ( 0x0F )
 // Mouse
-#define LCD_MOUSE_X   ( 0x10 )
-#define LCD_MOUSE_Y   ( 0x11 )
+#define LCD_MOUSE_X     ( 0x10 )
+#define LCD_MOUSE_Y     ( 0x11 )
+#define LCD_MOUSE_LEFT  ( 0x12 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -87,10 +88,7 @@ extern void exit(       int   x );
 // perform exec, i.e., start executing program at address x
 extern void exec( const void* x );
 
-// for process identified by pid, send signal of x
-extern int  kill( pid_t pid, int x );
-// for process identified by pid, set  priority to x
-extern void nice( pid_t pid, int x );
+// for process identified by pid, send signal of x extern int  kill( pid_t pid, int x ); for process identified by pid, set  priority to x extern void nice( pid_t pid, int x );
 
 // Create and delete semaphore. 
 extern uint32_t* createSemaphore( int x );
@@ -109,5 +107,6 @@ extern uint16_t* lcdGetFb();
 extern void draw();
 extern int* getMouseX();
 extern int* getMouseY();
+extern uint8_t* getMouseLeft();
 
 #endif

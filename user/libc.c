@@ -250,3 +250,13 @@ int* getMouseY() {
               : );
   return mousey;
 }
+
+uint8_t* getMouseLeft() {
+  uint8_t* mousel;
+  asm volatile ( "svc %1     \n" // make system call 
+                 "mov r0, %0 \n" 
+              : "=r" (mousel)
+              : "I" (LCD_MOUSE_LEFT)
+              : );
+  return mousel;
+}

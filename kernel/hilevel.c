@@ -21,6 +21,7 @@ extern void main_console();
 // cusor vars
 int mouse_pos_x = 400;
 int mouse_pos_y = 300;
+uint8_t mouse_left_state = 0;
 
 int last_priority = 0;
 int number_of_procs = 0;
@@ -109,7 +110,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
  
   /* Set up timer */
   //TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
-  TIMER0->Timer1Load  = 0x00010000; // select period
+  TIMER0->Timer1Load  = 0x00001000; // select period
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
   TIMER0->Timer1Ctrl |= 0x00000020; // enable          timer interrupt
@@ -247,6 +248,8 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     uint8_t mouse_state = PL050_getc( PS21 );
     uint8_t move_x = PL050_getc( PS21 );
     uint8_t move_y = PL050_getc( PS21 );
+
+    mouse_left_state = mouse_state & 0x1;
 
     mouse_pos_x += move_x - 255* (mouse_state >> 4 & 0x1);
     if (mouse_pos_x < 0) mouse_pos_x = 0;
@@ -458,6 +461,10 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     }
     case 0x11 : { // LCD_MOUSE_Y
       ctx->gpr[0] = (uint32_t)&mouse_pos_y;
+      break;
+    }
+    case 0x12 : { // LCD_MOUSE_LEFT
+      ctx->gpr[0] = (uint32_t)&mouse_left_state;
       break;
     }
     default   : { // 0x?? => unknown/unsupported
