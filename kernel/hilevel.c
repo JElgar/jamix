@@ -7,14 +7,18 @@
 
 #include "hilevel.h"
 
-list *procTab;
+// Process table
+list *procTab; 
+// Current executing process and its priority
 pcb_t* executing = NULL; 
+int last_priority = 0;
+// Process queue, lower priority number -> run first
 priorityQueue *q; 
 
 // Buffers for pipes
 buffer buffers[MAX_PROCS];
 
-// Stack for porcesses
+// Stack for processes
 extern uint32_t tos_P;
 extern void main_console();
 extern void main_P6();
@@ -25,52 +29,45 @@ int mouse_pos_y = 300;
 uint8_t mouse_left_state = 0;
 bool hovering = false;
 
-int last_priority = 0;
 int number_of_procs = 0;
 
 uint32_t procStackSize = 0x1000;
 
-// Frame buffer
+// Frame buffers
+// fb is the actaul frame buffer
 uint16_t fb[ 600 ][ 800 ];
+// Next buffer is given to user process
+// fb is set to fb_next_buffer during draw svc
 uint16_t fb_next_buffer[ 600 ][ 800 ];
-//uint16_t fb2[ 600 ][ 800 ];
-//uint16_t *fb_active[ 600 ][ 800 ];
 int current_buffer = 1;
 
-// Cursor
 void dispatch( ctx_t* ctx, pcb_t* next ) {
   //char prev_pid = '?', next_pid = '?';
 
   if( NULL != executing ) {
     memcpy( &executing->ctx, ctx, sizeof( ctx_t ) ); // preserve execution context of P_{prev}
-  //   prev_pid = '0' + executing->pid;
   }
   if( NULL != next ) {
     memcpy( ctx, &next->ctx, sizeof( ctx_t ) ); // restore  execution context of P_{next}
-  //  next_pid = '0' + next->pid;
   }
 
-    //PL011_putc( UART0, '[',      true );
-    //PL011_putc( UART0, prev_pid, true );
-    //PL011_putc( UART0, '-',      true );
-    //PL011_putc( UART0, '>',      true );
-    //PL011_putc( UART0, next_pid, true );
-    //PL011_putc( UART0, ']',      true );
-
-    executing = next;                           // update   executing process to P_{next}
+  executing = next;                           // update   executing process to P_{next}
 
   return;
 }
 
 void schedule( ctx_t* ctx ) {
+    // Continue the current executing process if it is the highest priority and not terminated
     if (executing != NULL && executing->status != STATUS_TERMINATED && last_priority < ( (struct pqitem*) pqPeek(q) )->priority) {
       return;    
     }
+
+    // If the process queue is empty then return
     if (q->size == 0) {
       return;
     }
 
-    // Get next item off queue
+    // Get next item off queue (queue is in priority order)
     pqitem *next_item = (struct pqitem*) pqPop(q);
     pcb_t *next_p = next_item->data;
     last_priority = next_item->priority;
@@ -80,25 +77,28 @@ void schedule( ctx_t* ctx ) {
       next_item = (struct pqitem*) pqPop(q);
       next_p = next_item->data;
       last_priority = next_item->priority;
-      //free(next_item);
     }
+    // Once the item has been used, free it
     free(next_item);
     
     // If the last process was NULL or has TERMINATED do not add it to the queue
     // Otherwise add it to the queue and set as ready
     if ( executing != NULL && executing->status != STATUS_TERMINATED ) { 
-      executing->status = STATUS_READY;         // update   execution status  of P_2
+      // update execution status of previously executing process
+      executing->status = STATUS_READY;         
+      // push the process back onto the queue with the same priority
       pqPush (q, executing, last_priority);
     }
 
     dispatch( ctx, next_p );
 
-    next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
+    // update execution status of next executing process
+    next_p->status = STATUS_EXECUTING;         
 
 }
 
 pcb_t* addProcess ( uint32_t pc ) {
-  //memset( &procTab[ number_of_procs ], 0, sizeof( pcb_t ) ); 
+  // Create new process
   pcb_t *newProc = malloc(sizeof(pcb_t));
   newProc->status     = STATUS_READY;
   newProc->pid        = number_of_procs;
@@ -108,6 +108,7 @@ pcb_t* addProcess ( uint32_t pc ) {
   newProc->ctx.sp     = newProc->tos;
   insertNext(procTab, newProc);
 
+  // Incremenet the number of porcesses
   number_of_procs++;
   return newProc;
 }
@@ -133,6 +134,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   LCD->LCDTiming1    = 0x0505F657; // per per Table 4.3 of datasheet
   LCD->LCDTiming2    = 0x071F1800; // per per Table 4.3 of datasheet
 
+  // Set the framebuffer
   LCD->LCDUPBASE     = ( uint32_t )( &fb );
 
   LCD->LCDControl    = 0x00000020; // select TFT   display type
@@ -161,7 +163,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   ack = PL050_getc( PS20       );  // receive  PS/2 acknowledgement
         PL050_putc( PS21, 0xF4 );  // transmit PS/2 enable command
   ack = PL050_getc( PS21       );  // receive  PS/2 acknowledgement
-  
+ 
+  // Preset the frame buffers to plane white
   for( int i = 0; i < 600; i++ ) {
     for( int j = 0; j < 800; j++ ) {
       fb[ i ][ j ] = 0x7FFF;
@@ -169,10 +172,13 @@ void hilevel_handler_rst(ctx_t* ctx ) {
     }
   }
 
+  // Add the console to the processTab so it can be run after rst
   addProcess( ( uint32_t ) ( &main_console ) );
-  
+
+  // Init process queue as priority queue
   q = newPriorityQueue();
 
+  // Add all processes in the procTab to the queue
   first(procTab);
   while (!isLast(procTab)) {
     int priority = 2;
@@ -207,7 +213,7 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     PL011_putc( UART0, '>',                      true ); 
   }
   else if( id == GIC_SOURCE_PS21 ) {
-    // Undraw previous mouse pointer
+    // Undraw previous mouse pointer (a 20x20 grid)
     for( int i = 0; i < 20; i++ ) {
       for( int j = 0; j < 20; j++ ) {
         int pos_y = mouse_pos_y + i;
@@ -219,19 +225,27 @@ void hilevel_handler_irq( ctx_t* ctx ) {
         fb[pos_y][pos_x] = fb_next_buffer[pos_y][pos_x];
       }
     }
+  
+    // Get the mouse data
     uint8_t mouse_state = PL050_getc( PS21 );
     uint8_t move_x = PL050_getc( PS21 );
     uint8_t move_y = PL050_getc( PS21 );
 
+    // Set if left mouse button is down 1->down 0->up
     mouse_left_state = mouse_state & 0x1;
 
+    // Get the new mouse positions from the move
+    // Sets new pos 
+    // movement is 9 bit 2s compliments with msb stored in the state
+    // Find value of move and add to global mouse position
+    // If mouse outside of screen, set to boundry
     mouse_pos_x += move_x - 255* (mouse_state >> 4 & 0x1);
     if (mouse_pos_x < 0) mouse_pos_x = 0;
     else if (mouse_pos_x > 799) mouse_pos_x = 799;
     mouse_pos_y -= move_y - 255* (mouse_state >> 5 & 0x1);
     if (mouse_pos_y < 0) mouse_pos_y = 0;
     else if (mouse_pos_y > 599) mouse_pos_y = 599;
-    
+   
     drawMousePointer();
   }
 
@@ -271,20 +285,25 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
     }
 
     case 0x03 : { // Fork
-      //PL011_putc( UART0, 'F', true );
-      pcb_t* child = addProcess ( ctx->pc ); // Add proccess to proc tab
+      // Add process to proc tab
+      pcb_t* child = addProcess ( ctx->pc );
+      // Copy current process
       memcpy ( &child->ctx, ctx , sizeof( ctx_t ));
+      // Set stack pointer to same location and copy stack across
       uint32_t stackPointerDistance = executing->tos - ctx->sp;
       child->ctx.sp = child->tos - stackPointerDistance;
       memcpy ( (uint32_t*) child->ctx.sp , (uint32_t*) ctx->sp ,  stackPointerDistance );
       child->ctx.gpr[0] = 0;
+      // Return child pid
       ctx->gpr[ 0 ] = child->pid;
+      // Add child to queue
       pqPush (q, child, 2 );
       break;
     } // SVC when process finishes execution
     case 0x04 : { // 0x04 => Exit executing process
       PL011_putc( UART0, 'F', true );
 
+      // Find the executing porcess in the procTab and remove
       first(procTab);
       while (!isLast(procTab)) {
         pcb_t* process = (pcb_t*) getNext(procTab);
@@ -300,6 +319,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
       break;
     }
     case 0x05 : { // Execute
+      // Set program counter of executing to start of new program
       ctx->pc = ctx->gpr[ 0 ];
       ctx->sp = executing->tos;
       break;
@@ -310,11 +330,14 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
       switch (sig) {
         case 0x0: //SIG_TERM 
         case 0x1: //SIG_QUIT
+          // Find process in procTab
           first(procTab);
           while (!isLast(procTab)) {
             pcb_t* process = (pcb_t*) getNext(procTab);
             if (process->pid == pid) {
+              // Delete from queue
               deleteItem(q, pid);
+              // Delete from proctab
               deleteNext(procTab);
               break;
             }
@@ -325,12 +348,16 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
       break;
     }
     case 0x08 : { // SYS_SEM_CREATE
+      // Create a new semaphore in heap
       uint32_t* semaphore = malloc(sizeof(uint32_t));
+      // Set its value to that in r0
       *semaphore = ctx->gpr[0];
+      // Return pointer to semaphore
       ctx->gpr[0] = (uint32_t) semaphore;
       break;
     }
     case 0x09 : { // SYS_SEM_DESTROY
+      // Free the semaphore
       uint32_t* semaphore = (uint32_t*) ctx->gpr[0];
       free(semaphore);
       break;
@@ -339,6 +366,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
     case 0x0A : { // SYS_PIPE_CREATE
       buffer b;
       for (int i = 0; i < MAX_PROCS; i++) {
+        // Add a new buffer to the buffers array of given length
         if (buffers[i].inUse == false) {
           b = buffers[i];
           b.inUse = true;
@@ -351,43 +379,33 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
       break;
     }
     case 0x0B : { // SYS_PIPE_DESTROY
+      // Remove from array and free buffer
       buffer b = buffers[ctx->gpr[0]];
       freeQueue(b.data);
       b.inUse = false;
       break;
     }
     case 0x0C : { // SYS_PIPE_SEND
+      // Add given value to buffer queue
       char bId = ctx->gpr[0];
       char d   = ctx->gpr[1];
       push( buffers[bId].data, (qdata) d );
       break;
     }
     case 0x0D : { // SYS_PIPE_RECEIVE
+      // Take value off buffer queue
       char bId = ctx->gpr[0];
       char d = (char) pop( buffers[bId].data );
       ctx->gpr[0] = d;
       break;
     }
-    //case 0x0E : { // LCD_COLOR
-    //  for( int i = 0; i < 600; i++ ) {
-    //    for( int j = 0; j < 800; j++ ) {
-    //      fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
-    //    }
-    //  }
-    //}
-    //case 0x0F : { // LCD_WHITE
-    //  for( int i = 0; i < 600; i++ ) {
-    //    for( int j = 0; j < 800; j++ ) {
-    //      fb[ i ][ j ] = 0x7FFF;
-    //    }
-    //  }
-    //  break;
-    //}
     case 0x0E : { // LCD_CREATE
+      // Return pointer to new fb which is drawn in LCD_DRAW
       ctx->gpr[0] = (uint32_t)&fb_next_buffer[0][0];
       break;
     }
     case 0x0F : { // LCD_DRAW
+      // Set current fb equal to the fb given to programs
       for( int i = 0; i < 600; i++ ) {
         for( int j = 0; j < 800; j++ ) {
           fb[i][j] = fb_next_buffer[i][j];
@@ -396,18 +414,25 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
       break;
     }
     case 0x10 : { // LCD_MOUSE_X
+      // Return pointer to global mouse x pos
       ctx->gpr[0] = (uint32_t)&mouse_pos_x;
       break;
     }
     case 0x11 : { // LCD_MOUSE_Y
+      // Return pointer to global mouse y pos
       ctx->gpr[0] = (uint32_t)&mouse_pos_y;
       break;
     }
     case 0x12 : { // LCD_MOUSE_LEFT
+      // Return pointer to global left mouse button state
+      // 1-> pressed 0-> unpressed
       ctx->gpr[0] = (uint32_t)&mouse_left_state;
       break;
     }
     case 0x13 : { // LCD_HOVER
+      // Set whether the mouse is hovering
+      // If so pointer can change
+      // Used to indicate clickable
       hovering = (bool)ctx->gpr[0];
       break;
     }
@@ -419,6 +444,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
   return;
 }
 
+// Helper function to ensure drawn in fb range
 void drawPixel(int y, int x, uint16_t color) {
   if (x < 800 && y < 600) fb[y][x] = color;
 }
@@ -483,7 +509,7 @@ void drawMousePointer() {
     drawPixel(19+mouse_pos_y, 8+mouse_pos_x, 0x0);
 }
 
-// 2nd Mouse pointer
+// 2nd Mouse pointer for clickable
 //void drawMousePointer() {
 //  fillColor = 0x7FFF;
 //  outlineColor = 0x0;
