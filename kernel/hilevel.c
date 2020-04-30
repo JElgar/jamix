@@ -7,47 +7,44 @@
 
 #include "hilevel.h"
 
-list *procTab;
-//pcb_t procTab[ MAX_PROCS ]; 
-pcb_t* executing = NULL; priorityQueue *q; 
+pcb_t* executing = NULL;  //Current executing process
+int last_priority = 0; // Priority of executing process
 
-// Buffers for pipes
-buffer buffers[MAX_PROCS];
+list *procTab; // Process table
+priorityQueue *q; // Process queue
+int number_of_procs = 0; // Number of processes that have been created
+
+buffer buffers[MAX_PROCS]; // Buffers for pipes
 
 // Stack for porcesses
 extern uint32_t tos_P;
 extern void main_console();
 extern void main_P6();
 
-// cusor vars
+// global mouse vars
 int mouse_pos_x = 400;
 int mouse_pos_y = 300;
 uint8_t mouse_left_state = 0;
 bool hovering = false;
 
-int last_priority = 0;
-int number_of_procs = 0;
-
-uint32_t procStackSize = 0x1000;
+uint32_t procStackSize = 0x1000; // Stack size of each process
 
 // Frame buffer
+// fb is the actual frame buffer
+// Next buffer is given to user process
+// fb is set to fb_next_buffer during draw svc
 uint16_t fb[ 600 ][ 800 ];
 uint16_t fb_next_buffer[ 600 ][ 800 ];
-//uint16_t fb2[ 600 ][ 800 ];
-//uint16_t *fb_active[ 600 ][ 800 ];
-int current_buffer = 1;
 
-// Cursor
 void dispatch( ctx_t* ctx, pcb_t* next ) {
-  //char prev_pid = '?', next_pid = '?';
 
   if( NULL != executing ) {
-    memcpy( &executing->ctx, ctx, sizeof( ctx_t ) ); // preserve execution context of P_{prev}
-  //   prev_pid = '0' + executing->pid;
+    // preserve execution context of P_{prev}
+    memcpy( &executing->ctx, ctx, sizeof( ctx_t ) ); 
   }
   if( NULL != next ) {
-    memcpy( ctx, &next->ctx, sizeof( ctx_t ) ); // restore  execution context of P_{next}
-  //  next_pid = '0' + next->pid;
+    // restore  execution context of P_{next}
+    memcpy( ctx, &next->ctx, sizeof( ctx_t ) ); 
   }
 
     //PL011_putc( UART0, '[',      true );
@@ -63,6 +60,8 @@ void dispatch( ctx_t* ctx, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
+
+    /* Continue the current executing process if it is the highest priority and not terminated */
     if (executing != NULL && executing->status != STATUS_TERMINATED && last_priority < ( (struct pqitem*) pqPeek(q) )->priority) {
       return;    
     }
@@ -82,6 +81,7 @@ void schedule( ctx_t* ctx ) {
       last_priority = next_item->priority;
       //free(next_item);
     }
+    // Once finished inspecting the item, free it
     free(next_item);
     
     // If the last process was NULL or has TERMINATED do not add it to the queue
