@@ -17,7 +17,6 @@ void main_P6() {
   int *mouse_x_pointer = getMouseX();
   int *mouse_y_pointer = getMouseY();
   uint8_t *mouse_left_state = getMouseLeft();
-  //int mouse_y = *getMouseY();
   
   write( STDOUT_FILENO, "c", 1 );
   for( int i = 0; i < 600; i++ ) {

@@ -121,7 +121,13 @@ void exec( const void* x ) {
               : "I" (SYS_EXEC), "r" (x)
               : "r0" );
 
-  return; } int  kill( int pid, int x ) { int r; asm volatile( "mov r0, %2 \n" // assign r0 =  pid "mov r1, %3 \n" // assign r1 =    x
+  return; 
+} 
+
+
+int  kill( int pid, int x ) { 
+  int r; 
+  asm volatile( "mov r0, %2 \n" // assign r0 =  pid "mov r1, %3 \n" // assign r1 =    x
                 "svc %1     \n" // make system call SYS_KILL
                 "mov %0, r0 \n" // assign r0 =    r
               : "=r" (r) 

@@ -114,7 +114,7 @@ bool deleteNext(list *l) {
   next->previous = previous;
   previous->next = next;
 
-  //free(current);
+  free(current);
 
   l->current = next;
   return true;

@@ -4,8 +4,7 @@
 void put_pixel(int y, int x, uint16_t (*fb)[800], uint16_t c) {
   if (x < 800 && y < 600) {
     fb[y][x] = c;
-  }
-}
+  } }
 void square( uint32_t x, uint32_t y, uint32_t size, uint16_t color, uint16_t (*fb)[800] ) {
   if (size < 0) {
     return;
@@ -60,7 +59,13 @@ void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruc
         draw();
       }
       // If left mouse button pressed, execute prog
-      if (mouse_left_state) exec(button->prog);
+      if (mouse_left_state) {
+        setHover(false);
+        button->hovering = false;
+        square(button->x, button->y, button->size, button->color, fb);
+        draw();
+        exec(button->prog);
+      }
    }
    else {
      if (button->hovering) {
@@ -82,7 +87,11 @@ void handleTerminateClick(int mouse_x, int mouse_y, int mouse_left_state, int pi
       //  setHover(true);
       //}
       // If left mouse button pressed, execute prog
-      if (mouse_left_state) kill(pid, SIG_TERM);
+      if (mouse_left_state) {
+        kill(pid, SIG_TERM);
+        //put_str("Term" ,500, 650, fb);
+        draw();
+      }
     }
    }
 }

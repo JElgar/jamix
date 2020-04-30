@@ -74,15 +74,15 @@ void schedule( ctx_t* ctx ) {
     pqitem *next_item = (struct pqitem*) pqPop(q);
     pcb_t *next_p = next_item->data;
     last_priority = next_item->priority;
-    free(next_item);
   
     // If the next item is terminated loop until we find one which is not
     while (next_p->status == STATUS_TERMINATED) {
       next_item = (struct pqitem*) pqPop(q);
       next_p = next_item->data;
       last_priority = next_item->priority;
-      free(next_item);
+      //free(next_item);
     }
+    free(next_item);
     
     // If the last process was NULL or has TERMINATED do not add it to the queue
     // Otherwise add it to the queue and set as ready
@@ -516,3 +516,15 @@ void drawMousePointer() {
     drawPixel(19+mouse_pos_y, 7+mouse_pos_x, 0x0);
     drawPixel(19+mouse_pos_y, 8+mouse_pos_x, 0x0);
 }
+
+// 2nd Mouse pointer
+//void drawMousePointer() {
+//  fillColor = 0x7FFF;
+//  outlineColor = 0x0;
+//
+//  //BottomLine
+//  for ( int i = 0; i < 10; i++ ){
+//    drawPixel(15+mouse_pos_y, (-1)+mouse_pos_x, uint16_t color);
+//  }
+//
+//}

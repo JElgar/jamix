@@ -89,7 +89,11 @@ extern void exit(       int   x );
 // perform exec, i.e., start executing program at address x
 extern void exec( const void* x );
 
-// for process identified by pid, send signal of x extern int  kill( pid_t pid, int x ); for process identified by pid, set  priority to x extern void nice( pid_t pid, int x );
+// for process identified by pid, send signal of x 
+extern int  kill( pid_t pid, int x ); 
+
+//for process identified by pid, set  priority to x 
+extern void nice( pid_t pid, int x );
 
 // Create and delete semaphore. 
 extern uint32_t* createSemaphore( int x );
