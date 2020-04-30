@@ -23,6 +23,7 @@ extern void main_P6();
 int mouse_pos_x = 400;
 int mouse_pos_y = 300;
 uint8_t mouse_left_state = 0;
+bool hovering = false;
 
 int last_priority = 0;
 int number_of_procs = 0;
@@ -68,12 +69,18 @@ void schedule( ctx_t* ctx ) {
     if (q->size == 0) {
       return;
     }
+
+    // Get next item off queue
     pqitem *next_item = (struct pqitem*) pqPop(q);
     pcb_t *next_p = next_item->data;
+    last_priority = next_item->priority;
     free(next_item);
+  
+    // If the next item is terminated loop until we find one which is not
     while (next_p->status == STATUS_TERMINATED) {
       next_item = (struct pqitem*) pqPop(q);
       next_p = next_item->data;
+      last_priority = next_item->priority;
       free(next_item);
     }
     
@@ -88,7 +95,6 @@ void schedule( ctx_t* ctx ) {
 
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
 
-    last_priority = next_item->priority;
 }
 
 pcb_t* addProcess ( uint32_t pc ) {
@@ -262,47 +268,13 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     
     drawMousePointer();
   }
-  flip();
-
-
-  //for( int i = 0; i < 600; i++ ) {
-  //  for( int j = 0; j < 800; j++ ) {
-  //    fb[ i ][ j ] = fb_next_buffer[ i ][ j ];
-  //  }
-  //}
-  //if (current_buffer == 1) {
-  //  fb[0][0] = &fb_buffer_2[0][0];
-  //  for( int i = 0; i < 10; i++ ) {
-  //    for( int j = 0; j < 10; j++ ) {
-  //      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
-  //    }
-  //  }
-  //  current_buffer = 2;
-  //  fb_buffer_1[0][0] = fb_next_buffer;
-  //}
-  //else if (current_buffer == 2) {
-  //  fb[0][0] = &fb_buffer_1[0][0];
-  //  for( int i = 0; i < 10; i++ ) {
-  //    for( int j = 0; j < 10; j++ ) {
-  //      fb[mouse_pos_y + i][mouse_pos_x + j] = 0x0;
-  //    }
-  //  }
-  //  current_buffer = 1;
-  //  fb_buffer_2[0][0] = fb_next_buffer;
-  //}
-  
-
-
-  // Step 5: write the interrupt identifier to signal we're done.
-
 
   GICC0->EOIR = id;
 
   return;
 }
-
-/* theses are r0 and r1 in the lolelelv.c */
-void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) { 
+ 
+void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are r0 and r1 in lolevel
   /* Based on the identifier (i.e., the immediate operand) extracted from the
    * svc instruction, 
    *
@@ -469,6 +441,10 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       ctx->gpr[0] = (uint32_t)&mouse_left_state;
       break;
     }
+    case 0x13 : { // LCD_HOVER
+      hovering = (bool)ctx->gpr[0];
+      break;
+    }
     default   : { // 0x?? => unknown/unsupported
       break;
     }
@@ -477,33 +453,12 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
   return;
 }
 
-void flip() {
-  //if(current_buffer == 1) {
-  //  LCD->LCDUPBASE = (uint32_t) (&fb2);
-  //  current_buffer = 2;
-  //}
-  //else {
-  //  LCD->LCDUPBASE = (uint32_t) (&fb);
-  //  current_buffer = 1;
-  //}
-}
-
 void drawPixel(int y, int x, uint16_t color) {
   if (x < 800 && y < 600) fb[y][x] = color;
 }
 
 void drawMousePointer() {
-    //for( int i = 0; i < 10; i++ ) {
-    //  for( int j = 0; j < 10; j++ ) {
-    //    int pos_y = mouse_pos_y + i;
-    //    if (pos_y > 599) pos_y = 599;
-    //    else if (pos_y < 0) pos_y = 0;
-    //    int pos_x = mouse_pos_x + j;
-    //    if (pos_x > 799) pos_x = 799;
-    //    else if (pos_x < 0) pos_x = 0;
-    //    fb[pos_y][pos_x] = 0x0;
-    //  }
-    //}
+    uint32_t fillColor = hovering ? 0x001F : 0x7FFF;
     // Draw Left line
     for ( int i = 0; i < 17; i++ ) {
       drawPixel(mouse_pos_y+i, mouse_pos_x, 0x0);
@@ -515,7 +470,7 @@ void drawMousePointer() {
     // Fill in above section 
     for ( int i = 0; i < 12; i++ ) {
       for (int j = i-1; j > 0; j--) {
-        drawPixel(mouse_pos_y+i, mouse_pos_x+j, 0x7FFF);
+        drawPixel(mouse_pos_y+i, mouse_pos_x+j, fillColor);
       }
     }
     // Bottom up diagonal
@@ -525,7 +480,7 @@ void drawMousePointer() {
     // Fill in above section 
     for ( int i = 12; i < 16; i++ ) {
       for (int j = 4-(i-12); j > 0; j--) {
-        drawPixel(mouse_pos_y+i, mouse_pos_x+j, 0x7FFF);
+        drawPixel(mouse_pos_y+i, mouse_pos_x+j, fillColor);
       }
     }
     // Middle straight
@@ -543,10 +498,10 @@ void drawMousePointer() {
     // Fill in above Seciton
     for ( int i = 0; i < 2; i++ ) {
       for ( int j = 0; j < 3; j++ ) {
-        drawPixel(11+mouse_pos_y+i, 4+mouse_pos_x+j, 0x7FFF);
-        drawPixel(13+mouse_pos_y+i, 5+mouse_pos_x+j, 0x7FFF);
-        drawPixel(15+mouse_pos_y+i, 6+mouse_pos_x+j, 0x7FFF);
-        drawPixel(17+mouse_pos_y+i, 7+mouse_pos_x+j, 0x7FFF);
+        drawPixel(11+mouse_pos_y+i, 4+mouse_pos_x+j, fillColor);
+        drawPixel(13+mouse_pos_y+i, 5+mouse_pos_x+j, fillColor);
+        drawPixel(15+mouse_pos_y+i, 6+mouse_pos_x+j, fillColor);
+        drawPixel(17+mouse_pos_y+i, 7+mouse_pos_x+j, fillColor);
       }
     }
 

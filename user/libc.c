@@ -256,7 +256,15 @@ uint8_t* getMouseLeft() {
   asm volatile ( "svc %1     \n" // make system call 
                  "mov r0, %0 \n" 
               : "=r" (mousel)
-              : "I" (LCD_MOUSE_LEFT)
+              : "i" (LCD_MOUSE_LEFT)
               : );
   return mousel;
+}
+
+void setHover(bool hover) {
+  asm volatile ( "mov r0, %1 \n" 
+                 "svc %0     \n" // make system call 
+              : 
+              : "I" (LCD_SET_HOVER), "r" (hover)
+              : "r0" );
 }

@@ -34,7 +34,8 @@ void main_P6() {
     300,
     100,
     0x7FFF,
-    &main_P3
+    &main_P3,
+    false
   };
   button(p3b, "Click to Execute P3", fb);
   buttonStruct tb = {
@@ -42,14 +43,15 @@ void main_P6() {
     300,
     100,
     0x7FFF,
-    &main_P3
+    &main_P3,
+    false
   };
   button(tb, "Click to Terminate pid 2", fb);
   draw();
 
   while(1) {
-    handleExecClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, p3b, fb);
-    handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, 2, tb, fb);
+    handleExecClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, &p3b, fb);
+    handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, 2, &tb, fb);
   }
   //while(1) {
   //  if (*mouse_x > 200 && *mouse_x < 400) {

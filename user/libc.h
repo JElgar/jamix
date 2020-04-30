@@ -53,6 +53,7 @@
 #define LCD_MOUSE_X     ( 0x10 )
 #define LCD_MOUSE_Y     ( 0x11 )
 #define LCD_MOUSE_LEFT  ( 0x12 )
+#define LCD_SET_HOVER   ( 0x13 )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -108,5 +109,6 @@ extern void draw();
 extern int* getMouseX();
 extern int* getMouseY();
 extern uint8_t* getMouseLeft();
+extern void setHover(bool hover);
 
 #endif

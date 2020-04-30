@@ -6,7 +6,6 @@ void put_pixel(int y, int x, uint16_t (*fb)[800], uint16_t c) {
     fb[y][x] = c;
   }
 }
-
 void square( uint32_t x, uint32_t y, uint32_t size, uint16_t color, uint16_t (*fb)[800] ) {
   if (size < 0) {
     return;
@@ -51,22 +50,37 @@ void button( buttonStruct button, char* text, uint16_t (*fb)[800] ) {
   put_str(text, button.x, button.y + button.size + 10, fb);
 }
 
-void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruct button, uint16_t (*fb)[800]) {
-   // In the x range
-   if (mouse_x > button.x && mouse_x < button.x + button.size ) {
-    // If in the y range
-    if (mouse_y > button.y && mouse_y < button.y + button.size ) {
+void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruct *button, uint16_t (*fb)[800]) {
+   // In the x and y range of the button
+   if ((mouse_x > button->x && mouse_x < button->x + button->size) && (mouse_y > button->y && mouse_y < button->y + button->size )) {
+      if (!button->hovering) {
+        setHover(true);
+        button->hovering = true;
+        square(button->x, button->y, button->size, 0x0FF, fb);
+        draw();
+      }
       // If left mouse button pressed, execute prog
-      if (mouse_left_state) exec(button.prog);
-    }
+      if (mouse_left_state) exec(button->prog);
+   }
+   else {
+     if (button->hovering) {
+       setHover(false);
+       button->hovering = false;
+       square(button->x, button->y, button->size, button->color, fb);
+       draw();
+     }
    }
 }
 
-void handleTerminateClick(int mouse_x, int mouse_y, int mouse_left_state, int pid, buttonStruct button, uint16_t (*fb)[800]) {
+void handleTerminateClick(int mouse_x, int mouse_y, int mouse_left_state, int pid, buttonStruct *button, uint16_t (*fb)[800]) {
    // In the x range
-   if (mouse_x > button.x && mouse_x < button.x + button.size ) {
+   if (mouse_x > button->x && mouse_x < button->x + button->size ) {
     // If in the y range
-    if (mouse_y > button.y && mouse_y < button.y + button.size ) {
+    if (mouse_y > button->y && mouse_y < button->y + button->size ) {
+      //if (!button->hovering) {
+      //  button->hovering = true;
+      //  setHover(true);
+      //}
       // If left mouse button pressed, execute prog
       if (mouse_left_state) kill(pid, SIG_TERM);
     }
