@@ -114,7 +114,8 @@ bool deleteNext(list *l) {
   next->previous = previous;
   previous->next = next;
 
-  //free(current);
+  //free(current->value);
+  free(current);
 
   l->current = next;
   return true;
@@ -130,6 +131,7 @@ bool deletePrevious(list *l) {
   next->previous = previous;
   previous->next = next;
 
+  //free(current->value);
   free(current);
 
   return true;
@@ -139,6 +141,7 @@ void freeList(list *l) {
   item *i = l->sentinel->next;
   while (i->value != (data)NULL) {
     item *next = i->next; 
+    //free(i->value);
     free(i);
     i = next;
   }

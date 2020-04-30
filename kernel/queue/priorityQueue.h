@@ -27,10 +27,10 @@ priorityQueue *newPriorityQueue();
 void pqPush(priorityQueue *pq, pqdata d, int p);
 
 // Pop - Remove one item from the front of the queue
-pqitem *pqPop(priorityQueue *pq);
+pcb_t *pqPop(priorityQueue *pq);
 
 // Peek - return (without removing) first item from in queue
-pqitem *pqPeek(priorityQueue *pq);
+int pqPeekPriority(priorityQueue *pq);
 
 // Delete the process with the given pid
 void deleteItem(priorityQueue *pq, uint32_t pid);

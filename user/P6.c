@@ -7,6 +7,8 @@
 
 #include "P6.h"
 
+extern void main_philling(); 
+
 //int is_prime2( uint32_t x ) {
 //  if ( !( x & 1 ) || ( x < 2 ) ) {
 //    return ( x == 2 );
@@ -29,13 +31,8 @@
 
 void main_P6() {
 
-  //uint16_t fb[ 600 ][ 800 ] = lcdGetFb(); 
-  //uint16_t fb[600][800] = 
-  //lcdGetFb();
-  //uint16_t (*fb)[800] = (uint16_t (*)[600][800])lcdGetFb(); 
   uint16_t (*fb)[800] = (uint16_t (*)[800]) lcdGetFb(); 
-  
-  //int *mouse_x_pointer = getMouseX();
+  int *mouse_x_pointer = getMouseX();
   //int mouse_y = *getMouseY();
   
   write( STDOUT_FILENO, "c", 1 );
@@ -44,15 +41,22 @@ void main_P6() {
       fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
     }
   }
-  square(100, 200, 100, fb);
+  square(100, 200, 100, 0x0, fb);
   put_char('J', 100, 20, fb);
   put_char('A', 110, 20, fb);
   put_str("Hello", 110, 30, fb);
+  buttonStruct b = {
+    300,
+    300,
+    100,
+    &main_philling
+  };
+  button(b, "Click here", fb);
   draw();
 
   while(1) {
     write( STDOUT_FILENO, "d", 1 );
-    //if (*mouse_x_pointer > 400) break;
+    if (*mouse_x_pointer > 500) break;
   }
   //while(1) {
   //  if (*mouse_x > 200 && *mouse_x < 400) {

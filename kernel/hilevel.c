@@ -60,17 +60,17 @@ void dispatch( ctx_t* ctx, pcb_t* next ) {
 }
 
 void schedule( ctx_t* ctx ) {
-    if (executing != NULL && executing->status != STATUS_TERMINATED && last_priority < ( (struct pqitem*) pqPeek(q) )->priority) {
+    if (executing != NULL && executing->status != STATUS_TERMINATED && last_priority < pqPeekPriority(q)) {
       return;    
     }
     if (q->size == 0) {
       return;
     }
-    pqitem *next_item = (struct pqitem*) pqPop(q);
-    pcb_t *next_p = next_item->data;
+    last_priority = pqPeekPriority(q);
+    pcb_t *next_p = pqPop(q);
     while (next_p->status == STATUS_TERMINATED) {
-      next_item = (struct pqitem*) pqPop(q);
-      next_p = next_item->data;
+      last_priority = pqPeekPriority(q);
+      next_p = pqPop(q);
     }
     
     // If the last process was NULL or has TERMINATED do not add it to the queue
@@ -84,7 +84,6 @@ void schedule( ctx_t* ctx ) {
 
     next_p->status = STATUS_EXECUTING;         // update   execution status  of P_2
 
-    last_priority = next_item->priority;
 }
 
 pcb_t* addProcess ( uint32_t pc ) {
@@ -246,6 +245,11 @@ void hilevel_handler_irq( ctx_t* ctx ) {
     uint8_t move_x = PL050_getc( PS21 );
     uint8_t move_y = PL050_getc( PS21 );
 
+    // If the mouse has been clicked
+    if (mouse_state & 0x1) {
+      
+    }
+
     mouse_pos_x += move_x - 255* (mouse_state >> 4 & 0x1);
     if (mouse_pos_x < 0) mouse_pos_x = 0;
     else if (mouse_pos_x > 799) mouse_pos_x = 799;
@@ -393,7 +397,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     
     case 0x0A : { // SYS_PIPE_CREATE
       buffer b;
-      for (int i = 0; i < MAX_PROCS; i++) {
+      for (int  i = 0; i < MAX_PROCS; i++) {
         if (buffers[i].inUse == false) {
           b = buffers[i];
           b.inUse = true;

@@ -30,32 +30,30 @@ void pqPush(priorityQueue *pq, pqdata d, int priority) {
 }
 
 // Pop - Remove one item from the front of the queue
-// TODO what happens when queue is empty
-pqitem *pqPop(priorityQueue *pq) {
+pcb_t *pqPop(priorityQueue *pq) {
   // If the queue is empty
   if (pq->size == 0) {
     return NULL;
   }
  
-  // TODO check what im on about
-  // I think the issue is around here cause its probably return NULL to getPrevious, might be an issue with the linked list
   last(pq->l);
   pqitem *i = (struct pqitem*) getPrevious(pq->l);
   deletePrevious(pq->l);
   pq->size = pq->size - 1;
-  return i;
+  pqitem *p = (struct pqitem*)i->data;
+  //free(i);
+  return p->data;
 }
 
 // Look at the next item in the queue, if its 
-pqitem *pqPeek(priorityQueue *pq) {
+int pqPeekPriority(priorityQueue *pq) {
   // If the queue is empty
   if (pq->size == 0) {
     return NULL;
   }
  
   last(pq->l);
-  pqitem *i = (struct pqitem*) getPrevious(pq->l);
-  return i;
+  return ((struct pqitem*) getPrevious(pq->l))->priority;
 }
 
 void deleteItem (priorityQueue *pq, uint32_t pid) {
