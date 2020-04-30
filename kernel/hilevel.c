@@ -116,7 +116,6 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   procTab =  newList();
  
   /* Set up timer */
-  //TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Load  = 0x00001000; // select period
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
@@ -135,23 +134,12 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   LCD->LCDTiming2    = 0x071F1800; // per per Table 4.3 of datasheet
 
   LCD->LCDUPBASE     = ( uint32_t )( &fb );
-  //LCD->LCDLPBASE     = ( uint32_t )( &fblp );
 
   LCD->LCDControl    = 0x00000020; // select TFT   display type
   LCD->LCDControl   |= 0x00000008; // select 16BPP display mode
   LCD->LCDControl   |= 0x00000800; // power-on LCD controller
   LCD->LCDControl   |= 0x00000001; // enable   LCD controller
-  //LCD->LCDControl   |= 0x10000000; // enable dual panel
   
-  // Enable cursor
-  LCD->ClcdCrsrPalette0 = 0x0;
-  LCD->ClcdCrsrPalette1 = 0xFFF;
-  //LCD->ClcdCrsrXY = 0x0A0A;
-  for (int i = 0; i < 64; i++) {
-    LCD->ClcdCrsrImage[i] = 0x0;
-  }
-  LCD->ClcdCrsrCtrl = 0x1;
-
   /* Configure the mechanism for interrupt handling by
    *
    * - configuring then enabling PS/2 controllers st. an interrupt is
@@ -177,45 +165,23 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   for( int i = 0; i < 600; i++ ) {
     for( int j = 0; j < 800; j++ ) {
       fb[ i ][ j ] = 0x7FFF;
-      //fb2[ i ][ j ] = 0x0;
-      //fb_buffer_1[ i ][ j ] = 0x7FFF;
-      //fb_buffer_2[ i ][ j ] = 0x7FFF;
       fb_next_buffer[ i ][ j ] = 0x7FFF;
     }
   }
-  //for( int i = 0; i < 600; i++ ) {
-  //  for( int j = 0; j < 800; j++ ) {
-  //    fb[ i ][ j ] = 0x1F << ( ( i / 200 ) * 5 );
-  //  }
-  //}
 
   addProcess( ( uint32_t ) ( &main_console ) );
-  addProcess( ( uint32_t ) ( &main_P6 ) );
   
   q = newPriorityQueue();
-  //for ( int i = 0; i < number_of_procs; i++ ) {
-  //  int priority = 2;
-  //  pqPush(q, &procTab[ i ], priority);
-  //}
 
   first(procTab);
   while (!isLast(procTab)) {
     int priority = 2;
-    //pqPush(q, (struct pcb_t*) getNext(procTab), priority);
     pqPush(q, (pcb_t*) getNext(procTab), priority);
     next(procTab);
   }
 
-  /* Once the PCBs are initialised, we arbitrarily select the 0-th PCB to be 
-   * executed: there is no need to preserve the execution context, since it 
-   * is invalid on reset (i.e., no process was previously executing).
-   */
-
-  // dispatch( ctx, NULL, &procTab[ 0 ] );
   schedule ( ctx );
-  
   int_enable_irq();
-
   return;
 }
 

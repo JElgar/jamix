@@ -50,7 +50,7 @@ void main_P6() {
 
   while(1) {
     handleExecClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, &p3b, fb);
-    handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, 2, &tb, fb);
+    //handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, 2, &tb, fb);
   }
   //while(1) {
   //  if (*mouse_x > 200 && *mouse_x < 400) {
