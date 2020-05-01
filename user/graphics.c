@@ -78,7 +78,10 @@ void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruc
         if( 0 == f ) {
           exec( button->prog );
         } else {
-          put_char((*pid + '0'), 680, 410, 0x7FFF, fb);
+          //put_char((*pid + '0'), 680, 410, 0x7FFF, fb);
+          char str[3];
+          itoa(str, *pid);
+          put_str(str, 680, 410, 0x7FFF, fb);
           *pid = f;
         }
         draw();
@@ -113,7 +116,7 @@ void handleTerminateClick(int mouse_x, int mouse_y, int mouse_left_state, int *p
       if (mouse_left_state ) {
         kill(*pid, SIG_TERM);
         put_char((*pid + '0'), 680, 410, 0x7FFF, fb);
-        square(680, 410, 8, 0x7C00, fb);
+        square(680, 410, 24, 0x7C00, fb);
         draw();
       }
    }
