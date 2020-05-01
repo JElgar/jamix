@@ -29,10 +29,13 @@ void main_P6() {
   
   // Draw square and some text
   square(100, 200, 100, 0x0, fb);
-  put_char('J', 100, 20, fb);
-  put_char('E', 110, 20, fb);
-  put_str("Welcome to Jamos", 110, 30, fb);
+  put_char('J', 100, 20, 0x0, fb);
+  put_char('E', 110, 20, 0x0, fb);
+  put_str("Welcome to Jamos", 110, 30, 0x0, fb);
 
+  int pid;
+  int *pid_pointer = &pid;
+  *pid_pointer = 2;
   // Create and draw two buttons
   buttonStruct p3b = {
     200,
@@ -40,27 +43,29 @@ void main_P6() {
     100,
     0x7FFF,
     &main_P3,
+    false,
     false
   };
-  button(p3b, "Click to Execute P3", fb);
+  button(p3b, "Click to Execute P3", 0x7FFF, fb);
   buttonStruct tb = {
     450,
     300,
     100,
     0x7FFF,
     &main_P3,
+    false,
     false
   };
-  button(tb, "Click to Terminate pid 2", fb);
+  button(tb, "Click to Terminate pid" , 0x00, fb);
+  //put_char((*pid_pointer + '0'), 570, 350, fb);
 
   // Draw program framebuffer into actaul framebuffer
   draw();
 
-  int pid = 2;
   while(1) {
     // Handle click on execute P3 button
-    handleExecClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, &p3b, &pid, fb);
-    //handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, pid, &tb, fb);
+    handleExecClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, &p3b, pid_pointer, fb);
+    handleTerminateClick(*mouse_x_pointer, *mouse_y_pointer, *mouse_left_state, pid_pointer, &tb, fb);
   }
   exit( EXIT_SUCCESS );
 }
