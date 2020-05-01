@@ -91,6 +91,7 @@ void* load( char* x ) {
  */
 
 void main_console() {
+  // Start UI
   if( 0 == fork() ) {
     exec( &main_P6 );
   }
@@ -116,6 +117,7 @@ void main_console() {
       void* addr = load( cmd_argv[ 1 ] );
 
       if( addr != NULL ) {
+        // If child process execute new program
         if( 0 == fork() ) {
           exec( addr );
         }

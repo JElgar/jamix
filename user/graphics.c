@@ -1,14 +1,14 @@
 #include "graphics.h"
 #include "fonts.h"
 
+// Helper function to keep in range of frambuffer
 void put_pixel(int y, int x, uint16_t (*fb)[800], uint16_t c) {
   if (x < 800 && y < 600) {
     fb[y][x] = c;
-  } }
+  } 
+}
+
 void square( uint32_t x, uint32_t y, uint32_t size, uint16_t color, uint16_t (*fb)[800] ) {
-  if (size < 0) {
-    return;
-  }
   for (int i = 0; i < size; i++) { 
     if (i+y < 599) {
       for (int j = 0; j < size; j++) { 
@@ -27,48 +27,64 @@ void square( uint32_t x, uint32_t y, uint32_t size, uint16_t color, uint16_t (*f
 }
 
 void put_char(int c, uint32_t x, uint32_t y, uint16_t (*fb)[800]) {
+  // Find character row
   char *ci = font8x8_basic[c];
+  // Draw pixels at points specified in font array
+  // Fonts are stored in array as 8x8 grid
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
       if (ci[i] & 1 << j) {
         put_pixel(y + i, x + j, fb, 0x0);
       }
-
     }
   }
 }
 
 void put_str(char* chars, uint32_t x, uint32_t y, uint16_t (*fb)[800]) {
+  // Loop thorugh char* until hit string terminating character and put_char
   for (int i = 0; chars[i] != '\0'; i++) {
     put_char(chars[i], x + i * 10, y, fb);
   }
 }
 
 void button( buttonStruct button, char* text, uint16_t (*fb)[800] ) {
+  // Draw square at button location
   square(button.x, button.y, button.size, button.color, fb);
+  // Write helper text under button
   put_str(text, button.x, button.y + button.size + 10, fb);
 }
 
-void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruct *button, uint16_t (*fb)[800]) {
+void handleExecClick(int mouse_x, int mouse_y, int mouse_left_state, buttonStruct *button,int *pid, uint16_t (*fb)[800]) {
    // In the x and y range of the button
    if ((mouse_x > button->x && mouse_x < button->x + button->size) && (mouse_y > button->y && mouse_y < button->y + button->size )) {
       if (!button->hovering) {
+        // Sets hovering as true in hilevel so mouse can change
         setHover(true);
+        // Set hovering in button so knows its already been done
+        // This prevents having to redraw every frame
         button->hovering = true;
+        // Draw square over current button to change color
         square(button->x, button->y, button->size, 0x0FF, fb);
         draw();
       }
       // If left mouse button pressed, execute prog
       if (mouse_left_state) {
+        // Revert to unhovered once clicked
         setHover(false);
         button->hovering = false;
         square(button->x, button->y, button->size, button->color, fb);
         draw();
-        exec(button->prog);
+        int f = fork();
+        if( 0 == f ) {
+          exec( button->prog );
+        } else {
+          *pid = f;
+        }
       }
    }
    else {
      if (button->hovering) {
+       // Revert to unhovered once left button area
        setHover(false);
        button->hovering = false;
        square(button->x, button->y, button->size, button->color, fb);
@@ -82,14 +98,9 @@ void handleTerminateClick(int mouse_x, int mouse_y, int mouse_left_state, int pi
    if (mouse_x > button->x && mouse_x < button->x + button->size ) {
     // If in the y range
     if (mouse_y > button->y && mouse_y < button->y + button->size ) {
-      //if (!button->hovering) {
-      //  button->hovering = true;
-      //  setHover(true);
-      //}
-      // If left mouse button pressed, execute prog
+      // If left mouse button pressed, terminate pid
       if (mouse_left_state) {
         kill(pid, SIG_TERM);
-        //put_str("Term" ,500, 650, fb);
         draw();
       }
     }

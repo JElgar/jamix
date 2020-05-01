@@ -36,7 +36,7 @@
 #define SYS_KILL      ( 0x06 )
 #define SYS_NICE      ( 0x07 )
 
-// Semaphore nonsense
+// Semaphores
 #define SYS_SEM_CREATE    ( 0x08 )
 #define SYS_SEM_DESTROY   ( 0x09 )
 
@@ -49,6 +49,7 @@
 // LCD
 #define LCD_GET_FB    ( 0x0E )
 #define LCD_DRAW      ( 0x0F )
+
 // Mouse
 #define LCD_MOUSE_X     ( 0x10 )
 #define LCD_MOUSE_Y     ( 0x11 )
@@ -108,11 +109,21 @@ extern void destroyPipe ( int id );
 extern void sendToPipe(int id, char c);
 extern char receiveFromPipe(int id);
 
+// Returns frame buffer which is drawn when calling draw
 extern uint16_t* lcdGetFb();
+// Sets actaul frame buffer to program framebuffer
+// This means you have to draw when this is called opposed to each frame
 extern void draw();
+// Return pointer to global mouse x pos
+
 extern int* getMouseX();
+// Return pointer to global mouse y pos
 extern int* getMouseY();
+// Return pointer to global left mouse state
+// 0 -> unclicked 1 -> clicked
 extern uint8_t* getMouseLeft();
+// Set whether hovering 
+// Used to set mouse over clickable objects
 extern void setHover(bool hover);
 
 #endif
