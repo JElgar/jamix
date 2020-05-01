@@ -3,8 +3,8 @@
 int numberOfPhils = 16;
 
 void chill(int i) {
-  for(int x = 0; x < i*100000; i++){
-  
+  for(int x = 0; x < i*1000000; i++){
+    asm(""); // Prevents optimising out
   }
   return;
 }

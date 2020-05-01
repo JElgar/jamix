@@ -388,14 +388,14 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {  // Funciton parameter are
     case 0x0C : { // SYS_PIPE_SEND
       // Add given value to buffer queue
       char bId = ctx->gpr[0];
-      char d   = ctx->gpr[1];
-      push( buffers[bId].data, (qdata) d );
+      char d   = (char)ctx->gpr[1];
+      push( buffers[bId].data, (qdata) &d );
       break;
     }
     case 0x0D : { // SYS_PIPE_RECEIVE
       // Take value off buffer queue
       char bId = ctx->gpr[0];
-      char d = (char) pop( buffers[bId].data );
+      char d = *(char*) pop( buffers[bId].data );
       ctx->gpr[0] = d;
       break;
     }

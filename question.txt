@@ -76,10 +76,29 @@ source code) should go here:
 
 [
 
+Stage 1.
+Used Scheduler to check processes on queue and run next process after each tick 
+(timer interupt). Then added priority to process queue. I chose to add priority
+to the queue it self, but in the future would probably add the priority to the
+process as it could be accessed more easily.
 
+Used void* linked list, so it could be used as base for process queue and for 
+the prococess table.
 
+Stage 2.
 
-UI:
+The process table was changed to a linked list so item could be added and removed
+more easily. 
+
+Philosiphers - Used a waiter to ensure only one philosipher could pick up cutlery
+at one time. This prevents deadlock as it always allows a philosipher to pick up
+2 pieces of cutlery whilst preventing all other philosipher from picking up 
+anything.
+
+UI Stage 3:
+
+Aim: My aim was to implement clickable buttons
+
 Draw() - I added the draw function to ensure the frame buffer would only update 
 when required by the user programs, opposed to having to update every timer
 interupt
@@ -88,15 +107,28 @@ Mouse Clicks - I handled mouse clicks in the user program. Alhtough this is not
 the optimal solution (the interupt is not handled at the same time as the PS/2
 interupt), with a sufficienlty fast timer, it works fine.
 
-Philosiphers - Used a waiter to ensure only one philosipher could pick up cutlery
-at one time.
+Hover - I handled hover in the user program and then used a pointer to a global
+hilevel variable to state whether the mouse was hovering. I used a uint_8 rather
+than a bool so that programs could specify different hover hover behaviours,
+although I only implemented 1 (chaning color). With more time I would add a 
+second drawMousePointer function to allow the mouse pointer to be different 
+when hovering over clickable (this could be extended to add additonal mouse 
+pointers for differnt hovers eg text).
 
-Used void* linked list, so it could be used as base for both process queue and 
-prococess table.
+Graphics - I wrote a basic graphics library to draw button, squares and print text.
+Text was draw using an 8x8 font I found online and then putting pixels where the 
+font array specified. This only supports basic asci but could easily be extended
+with a greater font array. Put string simply puts characters until the string
+terminate character '\0'. This graphics libraray could be extended to include more
+compontents. I would also like to add seperate draw functions for different shapes
+to prevent the whole screen from being redrawn. This would hover require a svc
+interupt which takes the region that is being updtaed.
 
-The process table was changed to a linked list so item could be added and removed
-more easily. 
-
+Execute and Terminate button - The execute button forks the P6 process. The child 
+then executes the process associated with the button. The parent process sets the 
+global pid value to that of the child process. This then allows the terminate process 
+button to know which pid to terminate to termiante P3. It also prints this pid on 
+the screen to show the user which pid the button will terminate.
 
 ]
 

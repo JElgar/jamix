@@ -30,6 +30,6 @@ SECTIONS {
   .       = . + 0x00001000;  
   tos_svc = .;
   /* allocate stack for 27 processes */
-  .       = . + 0x00001000 * 27;
+  .       = . + 0x00001000 * 30;
   tos_P   = .;
 }
