@@ -82,6 +82,11 @@ Used Scheduler to check processes on queue and run next process after each tick
 to the queue it self, but in the future would probably add the priority to the
 process as it could be accessed more easily.
 
+Before taking anything off queue, it peeks the prioity of the next process. The 
+queue is stored in prioity order so this is the process with highest (lower integer
+value) prioity. If this prioity is lower than the current running process, it 
+continues to run the current process and takes nothing off the queue.
+
 Used void* linked list, so it could be used as base for process queue and for 
 the prococess table.
 
@@ -89,6 +94,10 @@ Stage 2.
 
 The process table was changed to a linked list so item could be added and removed
 more easily. 
+
+Implemented fork and exec - Splits the current process into child and parent. In 
+execute we then change the program counter to point at a new progrom. This allows 
+the creation of a new process.
 
 Philosiphers - Used a waiter to ensure only one philosipher could pick up cutlery
 at one time. This prevents deadlock as it always allows a philosipher to pick up

@@ -2,8 +2,9 @@
 
 int numberOfPhils = 16;
 
+// When using this chill function, it was optimised out
 void chill(int i) {
-  for(int x = 0; x < i*1000000; i++){
+  for(volatile int x = 0; x < 1000000; x++){
     asm(""); // Prevents optimising out
   }
   return;
@@ -14,7 +15,9 @@ void phil(uint32_t* left, uint32_t* right, uint32_t* waiter, int id) {
   write( STDOUT_FILENO, "Phil", 4 );
   while(1) {
     // Do some thinking
-    chill(10);
+    for(volatile int x = 0; x < 1000000; x++){
+      asm(""); // Prevents optimising out
+    }
  
     // Wait till the waiter is free and then claim
     sem_wait(waiter);
@@ -32,6 +35,9 @@ void phil(uint32_t* left, uint32_t* right, uint32_t* waiter, int id) {
 
     // Do eating
     chill(10);
+    for(volatile int x = 0; x < 1000000; x++){
+      asm(""); // Prevents optimising out
+    }
 
     // Put cutlery back down (unlock semaphore)
     sem_post(left);
