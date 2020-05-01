@@ -4,7 +4,7 @@ int numberOfPhils = 16;
 
 // When using this chill function, it was optimised out
 void chill(int i) {
-  for(volatile int x = 0; x < 1000000; x++){
+  for(volatile int x = 0; x < 1000000 * i; x++){
     asm(""); // Prevents optimising out
   }
   return;
