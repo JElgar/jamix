@@ -29,8 +29,7 @@ SECTIONS {
   /* allocate stack for svc mode     */
   .       = . + 0x00001000;  
   tos_svc = .;
-  /* temp allocation                 */
-  /* allocate stack for P1           */
-  .       = . + 0x00001000 * 20; /* TODO make link thing*/
+  /* allocate stack for 27 processes */
+  .       = . + 0x00001000 * 27;
   tos_P   = .;
 }

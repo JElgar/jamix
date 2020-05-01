@@ -35,7 +35,7 @@
 #include "./queue/queue.h"
 #include "../device/disk.h"
 
-#define MAX_PROCS 30
+#define MAX_PROCS 27
 
 typedef int pid_t;
 

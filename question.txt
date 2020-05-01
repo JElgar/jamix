@@ -16,7 +16,7 @@
 So that we can calibrate and improve the assignment in the future, give us
 a rough idea how long (in hours) you spent on it *in total*:
 
-effort : [30] hours
+effort : [40] hours
 
 -------------------------------------------------------------------------------
 
@@ -74,6 +74,30 @@ Any other documentation, notes or comments that you think are important or
 might be easy to overlook (e.g., a subtle issue or technique in associated
 source code) should go here:
 
-[...]
+[
+
+
+
+
+UI:
+Draw() - I added the draw function to ensure the frame buffer would only update 
+when required by the user programs, opposed to having to update every timer
+interupt
+
+Mouse Clicks - I handled mouse clicks in the user program. Alhtough this is not
+the optimal solution (the interupt is not handled at the same time as the PS/2
+interupt), with a sufficienlty fast timer, it works fine.
+
+Philosiphers - Used a waiter to ensure only one philosipher could pick up cutlery
+at one time.
+
+Used void* linked list, so it could be used as base for both process queue and 
+prococess table.
+
+The process table was changed to a linked list so item could be added and removed
+more easily. 
+
+
+]
 
 -------------------------------------------------------------------------------
